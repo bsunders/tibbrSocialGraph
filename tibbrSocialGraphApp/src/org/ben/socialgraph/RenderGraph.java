@@ -60,6 +60,23 @@ public class RenderGraph  {
 	// Entrypoint for the app
 	
 	// constructor
+	public RenderGraph(String url, String usr, String pwd){
+
+		
+		this.tibbr_url = url;
+		this.tibbr_usr = usr;
+		this.tibbr_pwd = pwd;
+		
+		
+		String[] a = this.tibbr_url.split("//");
+		String[] url_server = a[1].split(".t"); // assumes the URL is *.tibbr.*
+
+		//String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+		//filename = b[0]+ "_graph_" +date+ ".csv";
+		filename = url_server[0]+ "_graph.csv";
+
+	}
+	
 	public RenderGraph(){
 
 		String[] a = this.tibbr_url.split("//");
