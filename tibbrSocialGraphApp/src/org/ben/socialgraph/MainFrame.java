@@ -11,11 +11,14 @@ import java.awt.Insets;
 //import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.PrintStream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import org.gephi.preview.api.ProcessingTarget;
 
@@ -23,10 +26,15 @@ import processing.core.PApplet;
 
 
 
+
+
+
+
 //import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+
 
 public class MainFrame  {
 	
@@ -92,8 +100,11 @@ public class MainFrame  {
 			
 	        //Set up the content pane.
 	        addComponentsToPane();
-
+	        
+	        //contentPane.revalidate();
+	        
 	        frame.pack();
+	       // frame.setLocationRelativeTo( null );
 	        frame.setVisible(true);
 	}
 	 
@@ -108,9 +119,9 @@ public class MainFrame  {
 		//set up the grid layout
 		GridBagLayout gbl_panel = new GridBagLayout();
 		gbl_panel.columnWidths = new int[]{40, 40, 40, 0};
-		gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0};
+		gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		gbl_panel.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		controlPanel.setLayout(gbl_panel);
 		
 		//tibbr URL input
@@ -242,7 +253,7 @@ public class MainFrame  {
 			}
 		});
 		GridBagConstraints gbc_btnMoveDown = new GridBagConstraints();
-		gbc_btnMoveDown.insets = new Insets(0, 0, 0, 5);
+		gbc_btnMoveDown.insets = new Insets(0, 0, 5, 5);
 		gbc_btnMoveDown.gridx = 1;
 		gbc_btnMoveDown.gridy = 10;
 		controlPanel.add(btnMoveDown, gbc_btnMoveDown);
@@ -262,18 +273,53 @@ public class MainFrame  {
 		gbc_btnMoveRight.gridx = 2;
 		gbc_btnMoveRight.gridy = 9;
 		controlPanel.add(btnMoveRight, gbc_btnMoveRight);
+		
+		
         
 		// add pane for the graph to RHS. 
         graphPane = new JPanel();
         graphPane.setPreferredSize(new Dimension(1000, 900));
         graphPane.setBackground(Color.GRAY);
         contentPane.add(graphPane,BorderLayout.EAST);
+        
+        
+        
+        // setup text area for the output console
+        JTextArea ta = new JTextArea("Hello",200,200);
+        TextAreaOutputStream taos = new TextAreaOutputStream( ta, 100 ); // max lines = 100
+        PrintStream ps = new PrintStream( taos );
+        System.setOut( ps );
+        System.setErr( ps );
+
+
+        //JScrollBar scrollBar = new JScrollBar();
+		GridBagConstraints gbc_scrollBar = new GridBagConstraints();
+		gbc_scrollBar.gridheight = 4;
+		gbc_scrollBar.gridwidth = 3;
+		gbc_scrollBar.insets = new Insets(0, 0, 5, 5);
+		gbc_scrollBar.gridx = 0;
+		gbc_scrollBar.gridy = 12;
+		
+		
+		JScrollPane sp = new JScrollPane(ta);
+		sp.setPreferredSize(new Dimension(200, 300));
+		sp.add(ta);
+		
+		
+		controlPanel.add(sp , gbc_scrollBar);
+		
+		controlPanel.revalidate();
+		controlPanel.repaint();
+		
+		
+		
 
     }
 	
 	 private class HandlerClass implements ActionListener
 	    {
-	        public void actionPerformed(ActionEvent event)
+	        @SuppressWarnings("deprecation")
+			public void actionPerformed(ActionEvent event)
 	        {
 	        	
 	        	MainFrame.tibbr_url = MainFrame.txtURL.getText();
@@ -294,6 +340,9 @@ public class MainFrame  {
 			tsb = new RenderGraph();
 		else
 			tsb = new RenderGraph(MainFrame.tibbr_url, MainFrame.tibbr_usr, MainFrame.tibbr_pwd);
+		
+		System.out.println("Testing 123......" );
+		
 		
 		target = tsb.buildGraph();
 		PApplet applet = target.getApplet();
