@@ -66,7 +66,7 @@ public class RenderGraph  {
 		this.tibbr_url = url;
 		this.tibbr_usr = usr;
 		this.tibbr_pwd = pwd;
-		
+		System.out.println("Getting graph data for tibbr server: " + url);
 		
 		String[] a = this.tibbr_url.split("//");
 		String[] url_server = a[1].split(".t"); // assumes the URL is *.tibbr.*
@@ -79,6 +79,7 @@ public class RenderGraph  {
 	
 	public RenderGraph(){
 
+		
 		String[] a = this.tibbr_url.split("//");
 		String[] url = a[1].split(".t"); // assumes the URL is *.tibbr.*
 
@@ -104,7 +105,8 @@ public class RenderGraph  {
 		AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
 		ImportController importController = Lookup.getDefault().lookup(ImportController.class);
 
-		//Import file       
+		//Import file 
+		System.out.println("Loading raw tibbr data into graph");
 		Container container;
 		try {
 			File f = new File(this.filename);
@@ -132,6 +134,7 @@ public class RenderGraph  {
 		AutoLayout.DynamicProperty repulsionProperty = AutoLayout.createDynamicProperty("forceAtlas.repulsionStrength.name", new Double(10000.), 0f);//500 for the complete period
 		//autoLayout.addLayout( firstLayout, 0.5f );
 		autoLayout.addLayout(secondLayout, 1f, new AutoLayout.DynamicProperty[]{adjustBySizeProperty, repulsionProperty});
+		System.out.println("Applying graph layout...");
 		autoLayout.execute();
 
 
@@ -144,6 +147,7 @@ public class RenderGraph  {
 		AbstractColorTransformer<?> colorTransformer = (AbstractColorTransformer<?>) rankingController.getModel().getTransformer(Ranking.NODE_ELEMENT, Transformer.RENDERABLE_COLOR);
 
 		colorTransformer.setColors(new Color[]{new Color(0xFEF0D9), new Color(0xB30000)});
+		
 		rankingController.transform(degreeRanking,colorTransformer);
 
 		//Get Centrality
@@ -174,6 +178,7 @@ public class RenderGraph  {
 		
 		//---------------------------------
 		//Preview configuration
+		System.out.println("Building preview...");
 		PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
 		PreviewModel previewModel = previewController.getModel();
 		previewModel.getProperties().putValue(PreviewProperty.DIRECTED, Boolean.TRUE);
@@ -213,7 +218,7 @@ public class RenderGraph  {
 		target.resetZoom();
 		target.zoomMinus();
 		target.zoomMinus();
-		
+		System.out.println("Graph redered...");
 		return target;
 		
 
@@ -224,18 +229,21 @@ public class RenderGraph  {
 
 		if (!fDataFileExists()) 
 		{
+			System.out.println("No cached graph data for this server - contacting tibbr server...");
 			GetGraphDataFromTibbr tibbr = new GetGraphDataFromTibbr(this.tibbr_url, this.tibbr_usr, this.tibbr_pwd);
 			try {
 				tibbr.loginUser();	
 				tibbr.getTibbrUserData();
 				this.users = tibbr.myUsers;
 				dumpUsersToFile(this.filename);
-
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		else
+			System.out.println("Cached user data found for this server...");
 	}
 
 

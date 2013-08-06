@@ -5,13 +5,17 @@ import java.awt.Color;
 import java.awt.Container;
 //import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 //import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,10 +23,16 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 
 import org.gephi.preview.api.ProcessingTarget;
 
 import processing.core.PApplet;
+
+
+
+
+
 
 
 
@@ -56,13 +66,15 @@ public class MainFrame  {
 	static JPanel controlPanel;
 	static JPanel graphPane;
 	
+	public static PrintStream ps;
+	
 	public MainFrame(){
 		
 		tibbr_url = "";
 		tibbr_usr = "";
 		tibbr_pwd = "";
-		
-		txtURL = new JTextField("https://malaysiaair.tibbr.com"); // .setText("https://malaysiaair.tibbr.com");
+		// just some defaults for testing
+		txtURL = new JTextField("https://malaysiaair.tibbr.com"); 
 		txtUserID = new JTextField("tibbradmin");
 		txtPassword = new JPasswordField("Tibbr2013");
 		
@@ -113,19 +125,24 @@ public class MainFrame  {
 		
 		
 		// add local panel to WEST zone of frames content pane.
-		controlPanel = new JPanel();
+		controlPanel = new JPanel( new GridBagLayout());
 		contentPane.add(controlPanel, BorderLayout.WEST);
 		
 		//set up the grid layout
-		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{40, 40, 40, 0};
-		gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_panel.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		controlPanel.setLayout(gbl_panel);
+		//GridBagLayout gbl_panel = new GridBagLayout();
+		
+		
+		//gbl_panel.columnWidths = new int[]{40, 40, 40, 0};
+		//gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		//gbl_panel.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
+		//gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		
+		
+		//controlPanel.setLayout(gbl_panel);
 		
 		//tibbr URL input
 		JLabel lblTibbrUrl = new JLabel("tibbr URL:");
+		
 		GridBagConstraints gbc_lblTibbrUrl = new GridBagConstraints();
 		gbc_lblTibbrUrl.anchor = GridBagConstraints.EAST;
 		gbc_lblTibbrUrl.insets = new Insets(0, 0, 5, 5);
@@ -285,33 +302,39 @@ public class MainFrame  {
         
         
         // setup text area for the output console
-        JTextArea ta = new JTextArea("Hello",200,200);
-        TextAreaOutputStream taos = new TextAreaOutputStream( ta, 100 ); // max lines = 100
-        PrintStream ps = new PrintStream( taos );
+        JTextArea consoleTextArea = new JTextArea("");
+        // set desired size of text area (and let layout manager work it out).
+        consoleTextArea.setPreferredSize(new Dimension(300, 400));
+        
+        float newSize = (float) 10.0;
+		Font biggerFont = consoleTextArea.getFont().deriveFont(newSize );
+        
+		consoleTextArea.setFont(biggerFont);
+        
+        // use our OutputStream helper class to write to the textarea
+        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 35 ); // max lines = 100
+        
+        ps = new PrintStream( taos );
+  
+  
+        // reassign standard output streams to our new print stream
         System.setOut( ps );
         System.setErr( ps );
 
 
-        //JScrollBar scrollBar = new JScrollBar();
 		GridBagConstraints gbc_scrollBar = new GridBagConstraints();
-		gbc_scrollBar.gridheight = 4;
-		gbc_scrollBar.gridwidth = 3;
+		gbc_scrollBar.gridheight = 2;
+		gbc_scrollBar.gridwidth = 4;
 		gbc_scrollBar.insets = new Insets(0, 0, 5, 5);
 		gbc_scrollBar.gridx = 0;
 		gbc_scrollBar.gridy = 12;
 		
+		// add the console to a scroll window
+		JScrollPane sp = new JScrollPane(consoleTextArea);
+
 		
-		JScrollPane sp = new JScrollPane(ta);
-		sp.setPreferredSize(new Dimension(200, 300));
-		sp.add(ta);
-		
-		
+		// add the scroller (containing the console) to the control panel grid
 		controlPanel.add(sp , gbc_scrollBar);
-		
-		controlPanel.revalidate();
-		controlPanel.repaint();
-		
-		
 		
 
     }
@@ -322,11 +345,15 @@ public class MainFrame  {
 			public void actionPerformed(ActionEvent event)
 	        {
 	        	
-	        	MainFrame.tibbr_url = MainFrame.txtURL.getText();
-	        	MainFrame.tibbr_usr = MainFrame.txtUserID.getText();
-	        	MainFrame.tibbr_pwd = MainFrame.txtPassword.getText();
-
-	        	addGraphToContainer();
+	        	tibbr_url = txtURL.getText();
+	        	tibbr_usr = txtUserID.getText();
+	        	tibbr_pwd = txtPassword.getText();
+	        	System.out.println("--------------------------" );
+	        	System.out.println("Building Graph......" );
+	        	
+	        	start();
+	        	//controlPanel.repaint();
+	        	//addGraphToContainer();
 
 	        }
 	    }
@@ -336,12 +363,15 @@ public class MainFrame  {
 	{
 		RenderGraph tsb;
 		
+		
+		
+		
 		if ((tibbr_url == "") || (tibbr_usr == "")	|| (tibbr_pwd == ""))
 			tsb = new RenderGraph();
 		else
 			tsb = new RenderGraph(MainFrame.tibbr_url, MainFrame.tibbr_usr, MainFrame.tibbr_pwd);
 		
-		System.out.println("Testing 123......" );
+		//System.out.println("Graph Complete - rendering to UI......" );
 		
 		
 		target = tsb.buildGraph();
@@ -357,7 +387,59 @@ public class MainFrame  {
 	}
 	
 	
-
+	private void start() {
+        
+        // Use SwingWorker<Void, Void> and return null from doInBackground if
+        // you don't want any final result and you don't want to update the GUI
+        // as the thread goes along.
+        // First argument is the thread result, returned when processing finished.
+        // Second argument is the value to update the GUI with via publish() and process()
+        SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+ 
+            @Override
+            /*
+             * Note: do not update the GUI from within doInBackground.
+             */
+            protected Boolean doInBackground() throws Exception {
+                 
+                // Simulate useful work
+            	addGraphToContainer();
+                
+                 
+                return false;
+            }
+ 
+            @Override
+            // This will be called if you call publish() from doInBackground()
+            // Can safely update the GUI here.
+            protected void process(List<Integer> chunks) {
+                //Integer value = chunks.get(chunks.size() - 1);
+                 
+                //countLabel1.setText("Current value: " + value);
+            }
+ 
+            @Override
+            // This is called when the thread finishes.
+            // Can safely update GUI here.
+            protected void done() {
+                 
+                try {
+                    Boolean status = get();
+                    //statusLabel.setText("Completed with status: " + status);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                 
+            }
+             
+        };
+         
+        worker.execute();
+    }
 	
 	
 }
