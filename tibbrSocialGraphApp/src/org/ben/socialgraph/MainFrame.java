@@ -3,18 +3,15 @@ package org.ben.socialgraph;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-//import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-//import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
 import java.io.PrintStream;
-import java.util.List;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
@@ -23,27 +20,18 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingWorker;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
+import org.gephi.preview.api.PreviewProperty;
 import org.gephi.preview.api.ProcessingTarget;
 
 import processing.core.PApplet;
 
-
-
-
-
-
-
-
-
-
-
-
-//import javax.swing.JTextArea;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.JCheckBox;
 
 
 public class MainFrame  {
@@ -53,20 +41,19 @@ public class MainFrame  {
 	private static JTextField txtUserID;
 	private static JPasswordField txtPassword;
 	public String  txtURLvalue;
-	
 	public static String tibbr_url;
 	public static String tibbr_usr;
 	public static String tibbr_pwd;
-	
 	static JPanel contentPane;
-	
 	static Container contPane;
 	static JFrame frame;
 	static MainFrame mf;
 	static JPanel controlPanel;
 	static JPanel graphPane;
-	
 	public static PrintStream ps;
+	private static JTextField txtUserCentric;
+	private static JCheckBox chckbxEdgeCurved;
+	private static HashMap<String, Object> prevProps = new HashMap<String, Object>();
 	
 	public MainFrame(){
 		
@@ -74,7 +61,7 @@ public class MainFrame  {
 		tibbr_usr = "";
 		tibbr_pwd = "";
 		// just some defaults for testing
-		txtURL = new JTextField("https://malaysiaair.tibbr.com"); 
+		txtURL = new JTextField("https://tibbrdemo.tibbr.com"); 
 		txtUserID = new JTextField("tibbradmin");
 		txtPassword = new JPasswordField("Tibbr2013");
 		
@@ -93,52 +80,33 @@ public class MainFrame  {
 	
 	 private static void createAndShowGUI() {
          
-	        //Create and set up the window.
-		 
 		 	// call constructor to setup tibbr creds.
 		 	mf = new MainFrame();
 		 	
 	        frame = new JFrame("tibbr Social Graph");
-	        frame.setSize(new Dimension(500, 500));
+	        //frame.setSize(new Dimension(500, 500));
 	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setTitle("Social Graph v1.0");
 
-			
 			contentPane = (JPanel) frame.getContentPane();
 			contentPane.setBackground(Color.WHITE);
 			contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 			contentPane.setLayout(new BorderLayout(0, 0));
 			
-			
 	        //Set up the content pane.
 	        addComponentsToPane();
-	        
-	        //contentPane.revalidate();
-	        
+	        //frame.setLocationRelativeTo(null);
 	        frame.pack();
-	       // frame.setLocationRelativeTo( null );
 	        frame.setVisible(true);
 	}
 	 
 	public static void addComponentsToPane(  ) {
         
-		
-		
 		// add local panel to WEST zone of frames content pane.
-		controlPanel = new JPanel( new GridBagLayout());
+		GridBagLayout gbl_controlPanel = new GridBagLayout();
+		gbl_controlPanel.columnWeights = new double[]{0.0, 1.0, 0.0, 0.0};
+		controlPanel = new JPanel( gbl_controlPanel);
 		contentPane.add(controlPanel, BorderLayout.WEST);
-		
-		//set up the grid layout
-		//GridBagLayout gbl_panel = new GridBagLayout();
-		
-		
-		//gbl_panel.columnWidths = new int[]{40, 40, 40, 0};
-		//gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		//gbl_panel.columnWeights = new double[]{0.0, 1.0, 0.0, Double.MIN_VALUE};
-		//gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		
-		
-		//controlPanel.setLayout(gbl_panel);
 		
 		//tibbr URL input
 		JLabel lblTibbrUrl = new JLabel("tibbr URL:");
@@ -153,13 +121,12 @@ public class MainFrame  {
 		//txtURL = new JTextField();
 		GridBagConstraints gbc_txtURL = new GridBagConstraints();
 		gbc_txtURL.gridwidth = 2;
-		gbc_txtURL.insets = new Insets(0, 0, 5, 0);
+		gbc_txtURL.insets = new Insets(0, 0, 5, 5);
 		gbc_txtURL.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtURL.gridx = 1;
 		gbc_txtURL.gridy = 0;
 		controlPanel.add(txtURL, gbc_txtURL);
 		txtURL.setColumns(10);
-		
 		
 		
 		//User ID
@@ -174,7 +141,7 @@ public class MainFrame  {
 		//txtUserID = new JTextField();
 		GridBagConstraints gbc_txtUserID = new GridBagConstraints();
 		gbc_txtUserID.gridwidth = 2;
-		gbc_txtUserID.insets = new Insets(0, 0, 5, 0);
+		gbc_txtUserID.insets = new Insets(0, 0, 5, 5);
 		gbc_txtUserID.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtUserID.gridx = 1;
 		gbc_txtUserID.gridy = 1;
@@ -193,22 +160,49 @@ public class MainFrame  {
 		//txtPassword = new JPasswordField();
 		GridBagConstraints gbc_txtPassword = new GridBagConstraints();
 		gbc_txtPassword.gridwidth = 2;
-		gbc_txtPassword.insets = new Insets(0, 0, 5, 0);
+		gbc_txtPassword.insets = new Insets(0, 0, 5, 5);
 		gbc_txtPassword.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtPassword.gridx = 1;
 		gbc_txtPassword.gridy = 2;
 		controlPanel.add(txtPassword, gbc_txtPassword);
 		txtPassword.setColumns(10);
 		
+		JLabel lblNewLabel = new JLabel("User-Centric Graph:");
+		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
+		gbc_lblNewLabel.anchor = GridBagConstraints.EAST;
+		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNewLabel.gridx = 0;
+		gbc_lblNewLabel.gridy = 3;
+		controlPanel.add(lblNewLabel, gbc_lblNewLabel);
+		
+		txtUserCentric = new JTextField();
+		GridBagConstraints gbc_textField = new GridBagConstraints();
+		gbc_textField.gridwidth = 2;
+		gbc_textField.insets = new Insets(0, 0, 5, 5);
+		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField.gridx = 1;
+		gbc_textField.gridy = 3;
+		controlPanel.add(txtUserCentric, gbc_textField);
+		txtUserCentric.setColumns(10);
+		
+		 chckbxEdgeCurved = new JCheckBox("Edge Curved");
+		GridBagConstraints gbc_chckbxEdgeCurved = new GridBagConstraints();
+		gbc_chckbxEdgeCurved.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxEdgeCurved.gridx = 1;
+		gbc_chckbxEdgeCurved.gridy = 4;
+		controlPanel.add(chckbxEdgeCurved, gbc_chckbxEdgeCurved);
+		
 		//get graph
 		JButton btnGetGraph = new JButton("Get Graph..");
 		GridBagConstraints gbc_btnGetGraph = new GridBagConstraints();
-		gbc_btnGetGraph.insets = new Insets(0, 0, 5, 0);
+		gbc_btnGetGraph.insets = new Insets(0, 0, 5, 5);
 		gbc_btnGetGraph.gridx = 2;
-		gbc_btnGetGraph.gridy = 3;
+		gbc_btnGetGraph.gridy = 5;
 		controlPanel.add(btnGetGraph, gbc_btnGetGraph);
 		btnGetGraph.addActionListener(mf.new HandlerClass());
 	
+		//---------------------------------------------------
+		
 		//Zoom in button
 		JButton btnZoomIn = new JButton("Zoom In");
 		btnZoomIn.addActionListener(new ActionListener() {
@@ -219,9 +213,8 @@ public class MainFrame  {
 		GridBagConstraints gbc_btnZoomIn = new GridBagConstraints();
 		gbc_btnZoomIn.insets = new Insets(0, 0, 5, 5);
 		gbc_btnZoomIn.gridx = 1;
-		gbc_btnZoomIn.gridy = 4;
+		gbc_btnZoomIn.gridy = 6;
 		controlPanel.add(btnZoomIn, gbc_btnZoomIn);
-				
 				
 		//Zoom out button
 		JButton btnNewButton_1 = new JButton("Zoom Out");
@@ -233,7 +226,7 @@ public class MainFrame  {
 		GridBagConstraints gbc_btnNewButton_1 = new GridBagConstraints();
 		gbc_btnNewButton_1.insets = new Insets(0, 0, 5, 5);
 		gbc_btnNewButton_1.gridx = 1;
-		gbc_btnNewButton_1.gridy = 5;
+		gbc_btnNewButton_1.gridy = 7;
 		controlPanel.add(btnNewButton_1, gbc_btnNewButton_1);
 		
 		//Zoom Reset button
@@ -242,69 +235,66 @@ public class MainFrame  {
 			public void actionPerformed(ActionEvent e) {
 				target.resetZoom();
 				target.zoomMinus();
+
 			}
 		});
 		GridBagConstraints gbc_btnResetZoom = new GridBagConstraints();
 		gbc_btnResetZoom.insets = new Insets(0, 0, 5, 5);
 		gbc_btnResetZoom.gridx = 1;
-		gbc_btnResetZoom.gridy = 6;
+		gbc_btnResetZoom.gridy = 8;
 		controlPanel.add(btnResetZoom, gbc_btnResetZoom);
 		
-		//Move Up button
-		JButton btnMoveUp = new JButton("Move Up");
-		btnMoveUp.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			
-			}
-		});
-		GridBagConstraints gbc_btnMoveUp = new GridBagConstraints();
-		gbc_btnMoveUp.insets = new Insets(0, 0, 5, 5);
-		gbc_btnMoveUp.gridx = 1;
-		gbc_btnMoveUp.gridy = 8;
-		controlPanel.add(btnMoveUp, gbc_btnMoveUp);
-		
-		//Move Down button
-		JButton btnMoveDown = new JButton("Move Down");
-		btnMoveDown.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-			}
-		});
-		GridBagConstraints gbc_btnMoveDown = new GridBagConstraints();
-		gbc_btnMoveDown.insets = new Insets(0, 0, 5, 5);
-		gbc_btnMoveDown.gridx = 1;
-		gbc_btnMoveDown.gridy = 10;
-		controlPanel.add(btnMoveDown, gbc_btnMoveDown);
-		
-		//Move Left button
-		JButton btnNewButton_2 = new JButton("Move Left");
-		GridBagConstraints gbc_btnNewButton_2 = new GridBagConstraints();
-		gbc_btnNewButton_2.insets = new Insets(0, 0, 5, 5);
-		gbc_btnNewButton_2.gridx = 0;
-		gbc_btnNewButton_2.gridy = 9;
-		controlPanel.add(btnNewButton_2, gbc_btnNewButton_2);
-		
-		//Move RIght button
-		JButton btnMoveRight = new JButton("Move Right");
-		GridBagConstraints gbc_btnMoveRight = new GridBagConstraints();
-		gbc_btnMoveRight.insets = new Insets(0, 0, 5, 0);
-		gbc_btnMoveRight.gridx = 2;
-		gbc_btnMoveRight.gridy = 9;
-		controlPanel.add(btnMoveRight, gbc_btnMoveRight);
-		
-		
+//		//Move Up button
+//		JButton btnMoveUp = new JButton("Move Up");
+//		btnMoveUp.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//			
+//			}
+//		});
+//		GridBagConstraints gbc_btnMoveUp = new GridBagConstraints();
+//		gbc_btnMoveUp.insets = new Insets(0, 0, 5, 5);
+//		gbc_btnMoveUp.gridx = 1;
+//		gbc_btnMoveUp.gridy = 8;
+//		controlPanel.add(btnMoveUp, gbc_btnMoveUp);
+//		
+//		//Move Down button
+//		JButton btnMoveDown = new JButton("Move Down");
+//		btnMoveDown.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent arg0) {
+//			}
+//		});
+//		GridBagConstraints gbc_btnMoveDown = new GridBagConstraints();
+//		gbc_btnMoveDown.insets = new Insets(0, 0, 5, 5);
+//		gbc_btnMoveDown.gridx = 1;
+//		gbc_btnMoveDown.gridy = 10;
+//		controlPanel.add(btnMoveDown, gbc_btnMoveDown);
+//		
+//		//Move Left button
+//		JButton btnNewButton_2 = new JButton("Move Left");
+//		GridBagConstraints gbc_btnNewButton_2 = new GridBagConstraints();
+//		gbc_btnNewButton_2.insets = new Insets(0, 0, 5, 5);
+//		gbc_btnNewButton_2.gridx = 0;
+//		gbc_btnNewButton_2.gridy = 9;
+//		controlPanel.add(btnNewButton_2, gbc_btnNewButton_2);
+//		
+//		//Move RIght button
+//		JButton btnMoveRight = new JButton("Move Right");
+//		GridBagConstraints gbc_btnMoveRight = new GridBagConstraints();
+//		gbc_btnMoveRight.insets = new Insets(0, 0, 5, 0);
+//		gbc_btnMoveRight.gridx = 2;
+//		gbc_btnMoveRight.gridy = 9;
+//		controlPanel.add(btnMoveRight, gbc_btnMoveRight);
         
 		// add pane for the graph to RHS. 
         graphPane = new JPanel();
-        graphPane.setPreferredSize(new Dimension(1000, 900));
+        graphPane.setPreferredSize(new Dimension(1000, 1000));
         graphPane.setBackground(Color.GRAY);
-        contentPane.add(graphPane,BorderLayout.EAST);
-        
-        
+        contentPane.add(graphPane,BorderLayout.CENTER);
         
         // setup text area for the output console
         JTextArea consoleTextArea = new JTextArea("");
         // set desired size of text area (and let layout manager work it out).
-        consoleTextArea.setPreferredSize(new Dimension(300, 400));
+        consoleTextArea.setPreferredSize(new Dimension(400, 500));
         
         float newSize = (float) 10.0;
 		Font biggerFont = consoleTextArea.getFont().deriveFont(newSize );
@@ -312,30 +302,24 @@ public class MainFrame  {
 		consoleTextArea.setFont(biggerFont);
         
         // use our OutputStream helper class to write to the textarea
-        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 35 ); // max lines = 100
-        
+        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 35 ); // max lines = 100        
         ps = new PrintStream( taos );
-  
-  
+
         // reassign standard output streams to our new print stream
         System.setOut( ps );
-        System.setErr( ps );
-
+        //System.setErr( ps );
 
 		GridBagConstraints gbc_scrollBar = new GridBagConstraints();
-		gbc_scrollBar.gridheight = 2;
+		//gbc_scrollBar.gridheight = 2;
 		gbc_scrollBar.gridwidth = 4;
-		gbc_scrollBar.insets = new Insets(0, 0, 5, 5);
 		gbc_scrollBar.gridx = 0;
-		gbc_scrollBar.gridy = 12;
+		gbc_scrollBar.gridy = 14;
 		
 		// add the console to a scroll window
-		JScrollPane sp = new JScrollPane(consoleTextArea);
+		JScrollPane sp = new JScrollPane(consoleTextArea,ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-		
 		// add the scroller (containing the console) to the control panel grid
 		controlPanel.add(sp , gbc_scrollBar);
-		
 
     }
 	
@@ -351,91 +335,70 @@ public class MainFrame  {
 	        	System.out.println("--------------------------" );
 	        	System.out.println("Building Graph......" );
 	        	
-	        	start();
-	        	//controlPanel.repaint();
-	        	//addGraphToContainer();
+	        	
+	        	// Fill hashMap attribute based on UI
+	        	getGraphSettings();
+	        	// use worker thread to build and display graph
+	        	displayGraph();
 
 	        }
 	    }
-	
 
-	private static  void addGraphToContainer()
-	{
-		RenderGraph tsb;
-		
-		
-		
-		
-		if ((tibbr_url == "") || (tibbr_usr == "")	|| (tibbr_pwd == ""))
-			tsb = new RenderGraph();
-		else
-			tsb = new RenderGraph(MainFrame.tibbr_url, MainFrame.tibbr_usr, MainFrame.tibbr_pwd);
-		
-		//System.out.println("Graph Complete - rendering to UI......" );
-		
-		
-		target = tsb.buildGraph();
-		PApplet applet = target.getApplet();
-		applet.setPreferredSize(new Dimension(1000, 900));
-		applet.mousePressed();
-		
-		graphPane.removeAll();
-		graphPane.add(applet, BorderLayout.EAST);
-        
-		applet.mousePressed();
-		
-	}
+	 private void getGraphSettings(){
+		 
+		 
+		 if (chckbxEdgeCurved.isSelected())
+			 prevProps.put(PreviewProperty.EDGE_CURVED, Boolean.TRUE);
+		 else
+			 prevProps.put(PreviewProperty.EDGE_CURVED, Boolean.FALSE);
+		 	
+		 
+		 
+	 }
 	
-	
-	private void start() {
+	private void displayGraph() {
         
-        // Use SwingWorker<Void, Void> and return null from doInBackground if
-        // you don't want any final result and you don't want to update the GUI
-        // as the thread goes along.
         // First argument is the thread result, returned when processing finished.
         // Second argument is the value to update the GUI with via publish() and process()
-        SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+        SwingWorker<ProcessingTarget, Integer> worker = new SwingWorker<ProcessingTarget, Integer>() {
  
             @Override
-            /*
-             * Note: do not update the GUI from within doInBackground.
-             */
-            protected Boolean doInBackground() throws Exception {
-                 
-                // Simulate useful work
-            	addGraphToContainer();
+            protected ProcessingTarget doInBackground() throws Exception {
+
+        		RenderGraph tsb;
+        		if ((tibbr_url == "") || (tibbr_usr == "")	|| (tibbr_pwd == ""))
+        			tsb = new RenderGraph();
+        		else
+        			tsb = new RenderGraph(tibbr_url, tibbr_usr, tibbr_pwd, txtUserCentric.getText(), prevProps);
+        		
+        		ProcessingTarget target1 = tsb.buildGraph();
+				return target1;
                 
-                 
-                return false;
             }
+
+			@Override
+			protected void done() {
+			
+				super.done();
+
+				try {
+					// Grab process target generated from background task and add to graph pane
+					ProcessingTarget target2 = get();
+
+					PApplet applet = target2.getApplet();
+					graphPane.removeAll();
+					graphPane.add(applet, BorderLayout.EAST);
+					MainFrame.target = target2;
+					
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+				
+
+			}
  
-            @Override
-            // This will be called if you call publish() from doInBackground()
-            // Can safely update the GUI here.
-            protected void process(List<Integer> chunks) {
-                //Integer value = chunks.get(chunks.size() - 1);
-                 
-                //countLabel1.setText("Current value: " + value);
-            }
- 
-            @Override
-            // This is called when the thread finishes.
-            // Can safely update GUI here.
-            protected void done() {
-                 
-                try {
-                    Boolean status = get();
-                    //statusLabel.setText("Completed with status: " + status);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                 
-            }
-             
         };
          
         worker.execute();

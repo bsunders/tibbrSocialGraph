@@ -36,7 +36,8 @@ import org.xml.sax.SAXException;
  class TibbrUser {	
 	public String login;
 	public String id;
-	public String[]  idols= new String[50]; // declares and allocates memory (not init)
+	private final Integer max_users_followed=100;
+	public String[]  idols= new String[max_users_followed]; // declares and allocates memory (not init)
 
 	public TibbrUser () {
 		this.login = ""; 
@@ -64,9 +65,9 @@ public class GetGraphDataFromTibbr {
 	private String urlBase;
 	private String auth_token=null;
 	private String client_key=null;
-
-	// declare and allocate the member variable	
-	public TibbrUser[] myUsers = new TibbrUser[200]; 
+	private final Integer max_users=100;
+	private final Integer max_users_followed=100;
+	public TibbrUser[] myUsers = new TibbrUser[max_users]; 
 	
 	// contructor
 	public GetGraphDataFromTibbr (String _urlbase, String _username, String _password){
@@ -124,7 +125,7 @@ public class GetGraphDataFromTibbr {
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		String params = "?client_key="+this.client_key + "&auth_token="+this.auth_token;
 		// ****** CHANGE THIS NUMBER TO INCREASE USERS
-		params = params + "&params[per_page]=80";
+		params = params + "&params[per_page]="+ max_users.toString();
 		HttpGet getRequest = new HttpGet(urlBase+"/a/users/1/search_users.xml"+params);
 		// set the cookie policy
 		getRequest.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
@@ -155,7 +156,7 @@ public class GetGraphDataFromTibbr {
 		
 
 		String params = "?client_key="+this.client_key + "&auth_token="+this.auth_token;
-		params = params + "&[params]user_id=" + this.myUsers[index].id + "&params[per_page]=50";
+		params = params + "&[params]user_id=" + this.myUsers[index].id + "&params[per_page]="+max_users_followed.toString();  
 		HttpGet getRequest = new HttpGet(urlBase+"/a/users/1/idols.xml"+params);
 		
 		// set the cookie policy
@@ -294,44 +295,8 @@ public class GetGraphDataFromTibbr {
 	    return list.item(0);
 	}
 	
-	public String getUsername() {
-		return username;
-	}
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
 
-	public String getPassword() {
-		return password;
-	}
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getUrlBase() {
-		return urlBase;
-	}
-
-	public void setUrlBase(String urlBase) {
-		this.urlBase = urlBase;
-	}
-
-	public String getAuth_token() {
-		return auth_token;
-	}
-
-	public void setAuth_token(String auth_token) {
-		this.auth_token = auth_token;
-	}
-
-	public String getClient_key() {
-		return client_key;
-	}
-
-	public void setClient_key(String client_key) {
-		this.client_key = client_key;
-	}
 
 }
