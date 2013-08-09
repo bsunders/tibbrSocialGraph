@@ -131,7 +131,7 @@ public class RenderGraph  {
 		Container container;
 		try {
 			// if the user centric user exists, lets create a new CSV, with just that users relations.
-			if (userCentric != ""){
+			if (!userCentric.equals("")){
 				filename = CreateUserCentricCSV();
 			}
 			
