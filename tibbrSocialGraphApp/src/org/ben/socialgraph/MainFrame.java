@@ -16,11 +16,14 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
@@ -32,8 +35,12 @@ import org.gephi.preview.api.ProcessingTarget;
 import processing.core.PApplet;
 
 import javax.swing.JCheckBox;
+import javax.swing.SwingConstants;
+import javax.swing.JSpinner;
+import javax.swing.JList;
+import javax.swing.JComboBox;
 
-
+@SuppressWarnings("rawtypes")
 public class MainFrame  {
 	
 	private static  ProcessingTarget  target;
@@ -51,10 +58,22 @@ public class MainFrame  {
 	static JPanel controlPanel;
 	static JPanel graphPane;
 	public static PrintStream ps;
+	private static RenderGraph tsb;
+	// graph settings components
 	private static JTextField txtUserCentric;
 	private static JCheckBox chckbxEdgeCurved;
-	private static HashMap<String, Object> prevProps = new HashMap<String, Object>();
+	//private static HashMap<String, Object> prevProps = new HashMap<String, Object>();
+	private static JSpinner repulseSpinner;
+	private static  JCheckBox chckbxCommunities;
+
+	private static JComboBox lowColorComboBox;
+	private static JComboBox medColorComboBox;
+	private static JComboBox highColorComboBox;
 	
+	private static String[] colours = {"red","orange","yellow","green","blue","white","gray","pink", "cyan"};
+	 
+	 
+	 
 	public MainFrame(){
 		
 		tibbr_url = "";
@@ -99,12 +118,13 @@ public class MainFrame  {
 	        frame.pack();
 	        frame.setVisible(true);
 	}
-	 
+
+	@SuppressWarnings("unchecked")
 	public static void addComponentsToPane(  ) {
         
 		// add local panel to WEST zone of frames content pane.
 		GridBagLayout gbl_controlPanel = new GridBagLayout();
-		gbl_controlPanel.columnWeights = new double[]{0.0, 1.0, 0.0, 0.0};
+		gbl_controlPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0};
 		controlPanel = new JPanel( gbl_controlPanel);
 		contentPane.add(controlPanel, BorderLayout.WEST);
 		
@@ -157,7 +177,6 @@ public class MainFrame  {
 		gbc_lblTibbrPassword.gridy = 2;
 		controlPanel.add(lblTibbrPassword, gbc_lblTibbrPassword);
 		
-		//txtPassword = new JPasswordField();
 		GridBagConstraints gbc_txtPassword = new GridBagConstraints();
 		gbc_txtPassword.gridwidth = 2;
 		gbc_txtPassword.insets = new Insets(0, 0, 5, 5);
@@ -167,6 +186,7 @@ public class MainFrame  {
 		controlPanel.add(txtPassword, gbc_txtPassword);
 		txtPassword.setColumns(10);
 		
+		// user centric 
 		JLabel lblNewLabel = new JLabel("User-Centric Graph:");
 		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
 		gbc_lblNewLabel.anchor = GridBagConstraints.EAST;
@@ -184,20 +204,130 @@ public class MainFrame  {
 		gbc_textField.gridy = 3;
 		controlPanel.add(txtUserCentric, gbc_textField);
 		txtUserCentric.setColumns(10);
+		 
+		//Graph Settings label
+		 JLabel lblGraphSettings = new JLabel("Graph Settings:");
+		 GridBagConstraints gbc_lblGraphSettings = new GridBagConstraints();
+		 gbc_lblGraphSettings.anchor = GridBagConstraints.EAST;
+		 gbc_lblGraphSettings.insets = new Insets(0, 0, 5, 5);
+		 gbc_lblGraphSettings.gridx = 0;
+		 gbc_lblGraphSettings.gridy = 6;
+		 controlPanel.add(lblGraphSettings, gbc_lblGraphSettings);
 		
+		 // Edge curved
 		 chckbxEdgeCurved = new JCheckBox("Edge Curved");
+		 chckbxEdgeCurved.setHorizontalAlignment(SwingConstants.LEFT);
 		GridBagConstraints gbc_chckbxEdgeCurved = new GridBagConstraints();
+		gbc_chckbxEdgeCurved.anchor = GridBagConstraints.WEST;
 		gbc_chckbxEdgeCurved.insets = new Insets(0, 0, 5, 5);
 		gbc_chckbxEdgeCurved.gridx = 1;
-		gbc_chckbxEdgeCurved.gridy = 4;
+		gbc_chckbxEdgeCurved.gridy = 6;
 		controlPanel.add(chckbxEdgeCurved, gbc_chckbxEdgeCurved);
+		
+		// Communities
+		 chckbxCommunities = new JCheckBox("Highlight Communities");
+		chckbxCommunities.setHorizontalAlignment(SwingConstants.LEFT);
+		GridBagConstraints gbc_chckbxHighlightCommunities = new GridBagConstraints();
+		gbc_chckbxHighlightCommunities.anchor = GridBagConstraints.WEST;
+		gbc_chckbxHighlightCommunities.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxHighlightCommunities.gridx = 1;
+		gbc_chckbxHighlightCommunities.gridy = 7;
+		controlPanel.add(chckbxCommunities, gbc_chckbxHighlightCommunities);
+		
+		JLabel lblColourNodesBy = new JLabel("Colour nodes by most connected");
+		GridBagConstraints gbc_lblColourNodesBy = new GridBagConstraints();
+		gbc_lblColourNodesBy.gridheight = 3;
+		gbc_lblColourNodesBy.insets = new Insets(0, 0, 5, 5);
+		gbc_lblColourNodesBy.gridx = 0;
+		gbc_lblColourNodesBy.gridy = 8;
+		controlPanel.add(lblColourNodesBy, gbc_lblColourNodesBy);
+		
+		// colours : low
+		JLabel lblLowestConnections = new JLabel("Low:");
+		GridBagConstraints gbc_lblLowestConnections = new GridBagConstraints();
+		gbc_lblLowestConnections.anchor = GridBagConstraints.EAST;
+		gbc_lblLowestConnections.insets = new Insets(0, 0, 5, 5);
+		gbc_lblLowestConnections.gridx = 1;
+		gbc_lblLowestConnections.gridy = 8;
+		controlPanel.add(lblLowestConnections, gbc_lblLowestConnections);
+		lowColorComboBox = new JComboBox();
+		 for (int i =0; i < colours.length;i++)
+			 lowColorComboBox.addItem(colours[i]);
+		 
+		GridBagConstraints gbc_lowColorComboBox = new GridBagConstraints();
+		gbc_lowColorComboBox.insets = new Insets(0, 0, 5, 5);
+		//gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
+		gbc_lowColorComboBox.gridx = 2;
+		gbc_lowColorComboBox.gridy = 8;
+		controlPanel.add(lowColorComboBox, gbc_lowColorComboBox);
+		
+		// colours : Medium
+		JLabel lblMedium = new JLabel("Medium:");
+		GridBagConstraints gbc_lblMedium = new GridBagConstraints();
+		gbc_lblMedium.insets = new Insets(0, 0, 5, 5);
+		gbc_lblMedium.anchor = GridBagConstraints.EAST;
+		gbc_lblMedium.gridx = 1;
+		gbc_lblMedium.gridy = 9;
+		controlPanel.add(lblMedium, gbc_lblMedium);
+		
+		 medColorComboBox = new JComboBox();
+		 
+		 for (int i =0; i < colours.length;i++)
+			 medColorComboBox.addItem(colours[i]);
+		 
+		GridBagConstraints gbc_medColorComboBox = new GridBagConstraints();
+		gbc_medColorComboBox.insets = new Insets(0, 0, 5, 5);
+		//gbc_medColorComboBox.fill = GridBagConstraints.HORIZONTAL;
+		gbc_medColorComboBox.gridx = 2;
+		gbc_medColorComboBox.gridy = 9;
+		controlPanel.add(medColorComboBox, gbc_medColorComboBox);
+		
+		
+		// colours : High 
+		JLabel lblHigh = new JLabel("High:");
+		GridBagConstraints gbc_lblHigh = new GridBagConstraints();
+		gbc_lblHigh.anchor = GridBagConstraints.EAST;
+		gbc_lblHigh.insets = new Insets(0, 0, 5, 5);
+		gbc_lblHigh.gridx = 1;
+		gbc_lblHigh.gridy = 10;
+		controlPanel.add(lblHigh, gbc_lblHigh);
+		
+		 highColorComboBox = new JComboBox();
+		 for (int i =0; i < colours.length;i++)
+			 highColorComboBox.addItem(colours[i]);
+		 
+		GridBagConstraints gbc_highColorComboBox = new GridBagConstraints();
+		gbc_highColorComboBox.insets = new Insets(0, 0, 5, 5);
+		//gbc_highColorComboBox.fill = GridBagConstraints.HORIZONTAL;
+		gbc_highColorComboBox.gridx = 2;
+		gbc_highColorComboBox.gridy = 10;
+		controlPanel.add(highColorComboBox, gbc_highColorComboBox);
+		
+		// Node repulsion
+		JLabel lblNodeRepulsion = new JLabel("Node Repulsion:");
+		GridBagConstraints gbc_lblNodeRepulsion = new GridBagConstraints();
+		gbc_lblNodeRepulsion.anchor = GridBagConstraints.EAST;
+		gbc_lblNodeRepulsion.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNodeRepulsion.gridx = 0;
+		gbc_lblNodeRepulsion.gridy = 12;
+		controlPanel.add(lblNodeRepulsion, gbc_lblNodeRepulsion);
+		
+		SpinnerModel model = new SpinnerNumberModel(5000,500,90000,500);
+		 repulseSpinner = new JSpinner(model);
+
+		GridBagConstraints gbc_spinner = new GridBagConstraints();
+		gbc_spinner.anchor = GridBagConstraints.WEST;
+		gbc_spinner.insets = new Insets(0, 0, 5, 5);
+		gbc_spinner.gridx = 1;
+		gbc_spinner.gridy = 12;
+		controlPanel.add(repulseSpinner, gbc_spinner);
 		
 		//get graph
 		JButton btnGetGraph = new JButton("Get Graph..");
 		GridBagConstraints gbc_btnGetGraph = new GridBagConstraints();
 		gbc_btnGetGraph.insets = new Insets(0, 0, 5, 5);
 		gbc_btnGetGraph.gridx = 2;
-		gbc_btnGetGraph.gridy = 5;
+		gbc_btnGetGraph.gridy = 13;
 		controlPanel.add(btnGetGraph, gbc_btnGetGraph);
 		btnGetGraph.addActionListener(mf.new HandlerClass());
 	
@@ -213,7 +343,7 @@ public class MainFrame  {
 		GridBagConstraints gbc_btnZoomIn = new GridBagConstraints();
 		gbc_btnZoomIn.insets = new Insets(0, 0, 5, 5);
 		gbc_btnZoomIn.gridx = 1;
-		gbc_btnZoomIn.gridy = 6;
+		gbc_btnZoomIn.gridy = 14;
 		controlPanel.add(btnZoomIn, gbc_btnZoomIn);
 				
 		//Zoom out button
@@ -226,7 +356,7 @@ public class MainFrame  {
 		GridBagConstraints gbc_btnNewButton_1 = new GridBagConstraints();
 		gbc_btnNewButton_1.insets = new Insets(0, 0, 5, 5);
 		gbc_btnNewButton_1.gridx = 1;
-		gbc_btnNewButton_1.gridy = 7;
+		gbc_btnNewButton_1.gridy = 15;
 		controlPanel.add(btnNewButton_1, gbc_btnNewButton_1);
 		
 		//Zoom Reset button
@@ -234,14 +364,14 @@ public class MainFrame  {
 		btnResetZoom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				target.resetZoom();
-				target.zoomMinus();
+				//target.zoomMinus();
 
 			}
 		});
 		GridBagConstraints gbc_btnResetZoom = new GridBagConstraints();
 		gbc_btnResetZoom.insets = new Insets(0, 0, 5, 5);
 		gbc_btnResetZoom.gridx = 1;
-		gbc_btnResetZoom.gridy = 8;
+		gbc_btnResetZoom.gridy = 16;
 		controlPanel.add(btnResetZoom, gbc_btnResetZoom);
 		
 //		//Move Up button
@@ -313,10 +443,12 @@ public class MainFrame  {
 		//gbc_scrollBar.gridheight = 2;
 		gbc_scrollBar.gridwidth = 4;
 		gbc_scrollBar.gridx = 0;
-		gbc_scrollBar.gridy = 14;
+		gbc_scrollBar.gridy = 22;
 		
 		// add the console to a scroll window
-		JScrollPane sp = new JScrollPane(consoleTextArea,ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane sp = new JScrollPane(consoleTextArea,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 		// add the scroller (containing the console) to the control panel grid
 		controlPanel.add(sp , gbc_scrollBar);
@@ -332,30 +464,41 @@ public class MainFrame  {
 	        	tibbr_url = txtURL.getText();
 	        	tibbr_usr = txtUserID.getText();
 	        	tibbr_pwd = txtPassword.getText();
+	        	
 	        	System.out.println("--------------------------" );
 	        	System.out.println("Building Graph......" );
 	        	
-	        	
-	        	// Fill hashMap attribute based on UI
-	        	getGraphSettings();
-	        	// use worker thread to build and display graph
-	        	displayGraph();
+
+	        	 if ((tibbr_url == "") || (tibbr_usr == "")	|| (tibbr_pwd == "")){
+	        		 JOptionPane.showMessageDialog(null, "tibbr credentials are required...");
+	        		 return;
+	        	 }
+	        	 
+ 
+				tsb = new RenderGraph(tibbr_url, tibbr_usr, tibbr_pwd); // create graph object (lightweight call)
+				 
+				// Fill hashMap attribute based on UI
+				getGraphSettings();
+				// use worker thread to build and display graph
+				displayGraph();
+ 
 
 	        }
 	    }
 
+	 // get graph related settings and store in graphSettings Class
 	 private void getGraphSettings(){
 		 
-		 
-		 if (chckbxEdgeCurved.isSelected())
-			 prevProps.put(PreviewProperty.EDGE_CURVED, Boolean.TRUE);
-		 else
-			 prevProps.put(PreviewProperty.EDGE_CURVED, Boolean.FALSE);
-		 	
-		 
+		 tsb.setEdgeCurved(chckbxEdgeCurved.isSelected());
+		 tsb.setUserCentric(txtUserCentric.getText());
+		 tsb.setEnableCommunities(chckbxCommunities.isSelected());
+		 tsb.setNodeRepulsion((Integer)repulseSpinner.getValue());
+		 tsb.setLowColor((String)lowColorComboBox.getSelectedItem());
+		 tsb.setMedColor((String)medColorComboBox.getSelectedItem());
+		 tsb.setHighColor((String)highColorComboBox.getSelectedItem());
 		 
 	 }
-	
+
 	private void displayGraph() {
         
         // First argument is the thread result, returned when processing finished.
@@ -365,13 +508,9 @@ public class MainFrame  {
             @Override
             protected ProcessingTarget doInBackground() throws Exception {
 
-        		RenderGraph tsb;
-        		if ((tibbr_url == "") || (tibbr_usr == "")	|| (tibbr_pwd == ""))
-        			tsb = new RenderGraph();
-        		else
-        			tsb = new RenderGraph(tibbr_url, tibbr_usr, tibbr_pwd, txtUserCentric.getText(), prevProps);
-        		
-        		ProcessingTarget target1 = tsb.buildGraph();
+	         
+            	// actually go and build the graph - this take the time hence in worker thread.
+	        	ProcessingTarget target1 = tsb.buildGraph();
 				return target1;
                 
             }

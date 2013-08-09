@@ -58,30 +58,83 @@ import processing.core.PApplet;
  */
 public class RenderGraph  {
 
-	public TibbrUser[] users = new TibbrUser[200];
-	public Node[] arrNodes = new Node[200];
-	public Edge[] arrEdges = new Edge[1000];
-	public String filename = "graph.csv";
-	public String userCentric = "";
-	public String tibbr_url = "https://tibbrdemo.tibbr.com"; // default in case not set in UI.
-	public String tibbr_usr = "tibbradmin";
-	public String tibbr_pwd = "Tibbr2013";
-	private HashMap<String, Object> prevProps; 
+	private TibbrUser[] users = new TibbrUser[200];
+	private Node[] arrNodes = new Node[200];
+	private Edge[] arrEdges = new Edge[1000];
+	private String filename = "graph.csv";
+	
+	private String tibbr_url = "https://tibbrdemo.tibbr.com"; // default in case not set in UI.
+	private String tibbr_usr = "tibbradmin";
+	private String tibbr_pwd = "Tibbr2013";
+	private HashMap<String, Object> prevProps= new HashMap<String, Object>(); // used for setting the preview object
+	
+	//graph optional settingsprivate Boolean edgeCurved = false;
+	private Boolean enableCommunities= false;
+	private Integer nodeRepulsion = 10000;
+	private String userCentric = "";
+	private Boolean edgeCurved = false;
+	private Color lowColor,medColor,highColor;
+	private HashMap<String,Color> map;
+	
 
+
+	public void setLowColor(String sLowColor) {
+		
+		this.lowColor = map.get(sLowColor.toLowerCase());
+	}
+
+	public void setMedColor(String sMedColor) {
+		this.medColor = map.get(sMedColor.toLowerCase());
+	}
+
+	public void setHighColor(String sHighColor) {
+		this.highColor = map.get(sHighColor.toLowerCase());
+	}
+	
+	// graph options accessors
+	public String getUserCentric() {
+		return userCentric;
+	}
+
+	public void setUserCentric(String userCentric) {
+		this.userCentric = userCentric;
+	}
+
+	public void setEdgeCurved(Boolean edgeCurved) {
+		this.edgeCurved = edgeCurved;
+	}
+
+	public void setEnableCommunities(Boolean enableCommunities) {
+		this.enableCommunities = enableCommunities;
+	}
+
+	public void setNodeRepulsion(Integer nodeRepulsion) {
+		this.nodeRepulsion = nodeRepulsion;
+	}
+	
 	/**
 	 * @param url
 	 * @param usr
 	 * @param pwd
-	 * @param usrCentric
 	 */
-	public RenderGraph(String url, String usr, String pwd, String usrCentric, HashMap<String, Object> map){
+	public RenderGraph(String url, String usr, String pwd) { // , String usrCentric, HashMap<String, Object> map){
 
-		
+		 map = new HashMap<String,Color>();
+		 map.put("red", Color.red);
+		 map.put("orange", Color.orange);
+		 map.put("yellow", Color.yellow);
+		 map.put("green", Color.green);
+		 map.put("blue", Color.blue);
+		 map.put("white", Color.white);
+		 map.put("gray", Color.gray);
+		 map.put("pink", Color.pink);
+		 map.put("cyan", Color.cyan);
+		 
 		this.tibbr_url = url;
 		this.tibbr_usr = usr;
 		this.tibbr_pwd = pwd;
-		userCentric = usrCentric;
-		prevProps = new HashMap<String, Object>(map);   // copy map from parameter into member
+		//userCentric = usrCentric;
+		//prevProps = new HashMap<String, Object>();   // copy map from parameter into member
 		
 		System.out.println("Getting graph data for tibbr server: " + url);
 		
@@ -98,17 +151,7 @@ public class RenderGraph  {
 
 	}
 	
-	public RenderGraph(){
-
-		
-		String[] a = this.tibbr_url.split("//");
-		String[] url = a[1].split(".t"); // assumes the URL is *.tibbr.*
-
-		//String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
-		//filename = b[0]+ "_graph_" +date+ ".csv";
-		filename = url[0]+ "_graph.csv";
-
-	}
+	
 
 	public ProcessingTarget buildGraph(){
 
@@ -154,8 +197,8 @@ public class RenderGraph  {
 	//  1) LAYOUT
 		
 		// Force-Atlas - linked node attract - non-linked repell.
-		 
-		AutoLayout autoLayout = new AutoLayout(7, TimeUnit.SECONDS);
+		 Integer nSeconds = 7;
+		AutoLayout autoLayout = new AutoLayout(nSeconds, TimeUnit.SECONDS);
 		autoLayout.setGraphModel(graphModel);
 		//YifanHuLayout firstLayout = new YifanHuLayout(null, new StepDisplacement(1f));
 		
@@ -163,24 +206,31 @@ public class RenderGraph  {
 		ForceAtlasLayout faLayout = new ForceAtlasLayout(null);
 		
 		//tinker with some of the layout properties
-		AutoLayout.DynamicProperty adjustBySizeProperty = AutoLayout.createDynamicProperty("forceAtlas.adjustSizes.name", Boolean.TRUE, 0.1f);//True after 10% of layout time
-		AutoLayout.DynamicProperty repulsionProperty = AutoLayout.createDynamicProperty("forceAtlas.repulsionStrength.name", new Double(10000.), 0f);//500 for the complete period
+		
+		Double dblRepulse;
+		dblRepulse = (double) this.nodeRepulsion;
+		
+		AutoLayout.DynamicProperty adjustBySizeProperty = AutoLayout.createDynamicProperty("forceAtlas.adjustSizes.name", Boolean.TRUE, 0.1f); // prevents overapping of nodes
+		AutoLayout.DynamicProperty repulsionProperty = AutoLayout.createDynamicProperty("forceAtlas.repulsionStrength.name", dblRepulse, 0f);//500 for the complete period
 		//autoLayout.addLayout( firstLayout, 0.5f );
 		
 		autoLayout.addLayout(faLayout, 1f, new AutoLayout.DynamicProperty[]{adjustBySizeProperty, repulsionProperty});
-		System.out.println("Applying graph layout...");
+		System.out.println("Applying graph layout...please wait " + nSeconds + " seconds.");
 		autoLayout.execute();
 		
 
-	// 2) RANKING 
+	// 2) RANKING  - Colour and Size of nodes and labels
 		
 		//Rank color of nodes by Degree (which mean most connected node have highest ranking)
 		RankingController rankingController = Lookup.getDefault().lookup(RankingController.class);
 		Ranking<?> degreeRanking = rankingController.getModel().getRanking(Ranking.NODE_ELEMENT, Ranking.DEGREE_RANKING);
 		AbstractColorTransformer<?> colorTransformer = (AbstractColorTransformer<?>) rankingController.getModel().getTransformer(Ranking.NODE_ELEMENT, Transformer.RENDERABLE_COLOR);
-		float[] positions = {0f,0.33f,0.66f,1f};
+		//float[] positions = {0f,0.33f,0.66f,1f};
+		float[] positions = {0f,0.5f,1f};
 		colorTransformer.setColorPositions(positions);
-		Color[] colors = new Color[]{new Color(0x0000FF), new Color(0xFFFFFF),new Color(0x00FF00),new Color(0xFF0000)};
+		// change colours here: left most is lowest connected noded, right is highest.
+		//Color[] colors = new Color[]{new Color(0x0000FF), new Color(0xFFFFFF),new Color(0x00FF00),new Color(0xFF0000)};
+		Color[] colors = new Color[]{ lowColor,medColor, highColor};
 		colorTransformer.setColors(colors);
 		rankingController.transform(degreeRanking,colorTransformer);
 
@@ -208,22 +258,22 @@ public class RenderGraph  {
 		
 		
 	// 3) Partitioning
-		
-	//Run modularity algorithm - community detection
-		Modularity modularity = new Modularity();
-		modularity.execute(graphModel, attributeModel);
-		 
-		PartitionController partitionController = Lookup.getDefault().lookup(PartitionController.class);
-		
-		//Partition with 'modularity_class', just created by Modularity algorithm
-		AttributeColumn modColumn = attributeModel.getNodeTable().getColumn(Modularity.MODULARITY_CLASS);
-		@SuppressWarnings("rawtypes")
-		Partition p2 = partitionController.buildPartition(modColumn, graph);
-		System.out.println(p2.getPartsCount() + " partitions found");
-		NodeColorTransformer nodeColorTransformer2 = new NodeColorTransformer();
-		nodeColorTransformer2.randomizeColors(p2);
-		partitionController.transform(p2, nodeColorTransformer2);
-		
+		if (this.enableCommunities){
+			//Run modularity algorithm - community detection - this highlights clusters by colour
+			Modularity modularity = new Modularity();
+			modularity.execute(graphModel, attributeModel);
+			 
+			PartitionController partitionController = Lookup.getDefault().lookup(PartitionController.class);
+			
+			//Partition with 'modularity_class', just created by Modularity algorithm
+			AttributeColumn modColumn = attributeModel.getNodeTable().getColumn(Modularity.MODULARITY_CLASS);
+			@SuppressWarnings("rawtypes")
+			Partition p2 = partitionController.buildPartition(modColumn, graph);
+			System.out.println(p2.getPartsCount() + " partitions found");
+			NodeColorTransformer nodeColorTransformer2 = new NodeColorTransformer();
+			nodeColorTransformer2.randomizeColors(p2);
+			partitionController.transform(p2, nodeColorTransformer2);
+		}
 		
 		
 //------------------------------ DISPLAY ----------------------------------------
@@ -233,14 +283,22 @@ public class RenderGraph  {
 		PreviewModel previewModel = previewController.getModel();
 		
 		
-		// edges curved is coming from UI
+		// Default graph settings - can be over ridden by UI.
 		prevProps.put(PreviewProperty.DIRECTED, Boolean.TRUE);
 		prevProps.put(PreviewProperty.BACKGROUND_COLOR, Color.WHITE);
 		prevProps.put(PreviewProperty.SHOW_NODE_LABELS, Boolean.TRUE);
 		prevProps.put(PreviewProperty.NODE_LABEL_COLOR, new DependantOriginalColor(Color.BLACK));
-		prevProps.put(PreviewProperty.ARROW_SIZE,5f);
-		prevProps.put(PreviewProperty.NODE_LABEL_PROPORTIONAL_SIZE,Boolean.TRUE);
+		prevProps.put(PreviewProperty.ARROW_SIZE,6f);   // only works if you have non-curved edges. 5 - 10 is good range
+		prevProps.put(PreviewProperty.NODE_LABEL_PROPORTIONAL_SIZE,Boolean.TRUE); // proportional to node - apparently
 		
+		prevProps.put(PreviewProperty.NODE_BORDER_WIDTH ,0.1f);
+		//prevProps.put(PreviewProperty.NODE_BORDER_COLOR, Color.BLUE); // !causes crash!
+		
+		
+		if (this.edgeCurved)
+			prevProps.put(PreviewProperty.EDGE_CURVED, Boolean.TRUE);
+		else
+			prevProps.put(PreviewProperty.EDGE_CURVED, Boolean.FALSE);
 		
 		
 		Iterator<String> keySetIterator = prevProps.keySet().iterator();
@@ -282,7 +340,7 @@ public class RenderGraph  {
 		previewController.render(target);
 		target.refresh();
 		target.resetZoom();
-		target.zoomMinus();
+		//target.zoomMinus();
 		System.out.println("Graph redered...");
 		return target;
 		
@@ -320,7 +378,6 @@ public class RenderGraph  {
 				return newFilename;
 				
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -455,6 +512,10 @@ public class RenderGraph  {
 		return retval;
 
 	}
+
+
+
+
 
 
 
