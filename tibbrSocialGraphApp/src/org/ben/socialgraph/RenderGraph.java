@@ -63,9 +63,9 @@ public class RenderGraph  {
 	private Edge[] arrEdges = new Edge[1000];
 	private String filename = "graph.csv";
 	
-	private String tibbr_url = "https://tibbrdemo.tibbr.com"; // default in case not set in UI.
-	private String tibbr_usr = "tibbradmin";
-	private String tibbr_pwd = "Tibbr2013";
+	private String tibbr_url = ""; // default in case not set in UI.
+	private String tibbr_usr = "";
+	private String tibbr_pwd = "";
 	private HashMap<String, Object> prevProps= new HashMap<String, Object>(); // used for setting the preview object
 	
 	//graph optional settingsprivate Boolean edgeCurved = false;

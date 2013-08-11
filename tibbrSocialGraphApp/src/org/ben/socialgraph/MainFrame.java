@@ -82,7 +82,7 @@ public class MainFrame  {
 		// just some defaults for testing
 		txtURL = new JTextField("https://tibbrdemo.tibbr.com"); 
 		txtUserID = new JTextField("tibbradmin");
-		txtPassword = new JPasswordField("Tibbr2013");
+		txtPassword = new JPasswordField("");
 		
 	}
 	
