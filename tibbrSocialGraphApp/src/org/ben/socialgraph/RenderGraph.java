@@ -76,8 +76,6 @@ public class RenderGraph  {
 	private Color lowColor,medColor,highColor;
 	private HashMap<String,Color> map;
 	
-
-
 	public void setLowColor(String sLowColor) {
 		
 		this.lowColor = map.get(sLowColor.toLowerCase());
@@ -91,7 +89,6 @@ public class RenderGraph  {
 		this.highColor = map.get(sHighColor.toLowerCase());
 	}
 	
-	// graph options accessors
 	public String getUserCentric() {
 		return userCentric;
 	}
@@ -153,6 +150,10 @@ public class RenderGraph  {
 	
 	
 
+	/**
+	 * buildGraph
+	 * @return
+	 */
 	public ProcessingTarget buildGraph(){
 
 
@@ -309,9 +310,7 @@ public class RenderGraph  {
 			previewModel.getProperties().putValue(key, prevProps.get(key));
 			
 		}
-		
-		
-		
+
 		//previewModel.getProperties().putValue(PreviewProperty.EDGE_CURVED, Boolean.FALSE);
 		//previewModel.getProperties().putValue(PreviewProperty.EDGE_OPACITY, 100);
 		//previewModel.getProperties().putValue(PreviewProperty.EDGE_RADIUS, 1f);
@@ -347,6 +346,11 @@ public class RenderGraph  {
 
 	}
 
+	/**
+	 * CreateUserCentricCSV
+	 * @return
+	 * @throws IOException
+	 */
 	private String CreateUserCentricCSV() throws IOException {
 		// reads existing file of users, and extracts to a new file rows that contain our specified user
 		
@@ -390,6 +394,9 @@ public class RenderGraph  {
 	}
 
 	// login to tibbr REST API and get user followers
+	/**
+	 * getTibbrGraph
+	 */
 	public void getTibbrGraph(){
 
 		if (!fDataFileExists()) 
@@ -412,6 +419,9 @@ public class RenderGraph  {
 	}
 
 
+	/**
+	 * dumpUsersToFile
+	 */
 	public void dumpUsersToFile(){
 
 		try {
@@ -440,6 +450,10 @@ public class RenderGraph  {
 
 	}
 
+	/**
+	 * fDataFileExists
+	 * @return
+	 */
 	public boolean fDataFileExists(){
 		Boolean retVal = false;
 
@@ -451,6 +465,10 @@ public class RenderGraph  {
 
 	}	
 
+	/**
+	 * getGraphFromArray
+	 * @param graphModel
+	 */
 	public void getGraphFromArray(GraphModel graphModel){
 
 
@@ -494,6 +512,11 @@ public class RenderGraph  {
 		}
 
 	}
+	/**
+	 * getNodeFromLogin
+	 * @param login
+	 * @return
+	 */
 	public Node getNodeFromLogin(String login){
 
 		Node retval = null;

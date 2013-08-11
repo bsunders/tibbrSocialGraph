@@ -374,46 +374,7 @@ public class MainFrame  {
 		gbc_btnResetZoom.gridy = 16;
 		controlPanel.add(btnResetZoom, gbc_btnResetZoom);
 		
-//		//Move Up button
-//		JButton btnMoveUp = new JButton("Move Up");
-//		btnMoveUp.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//			
-//			}
-//		});
-//		GridBagConstraints gbc_btnMoveUp = new GridBagConstraints();
-//		gbc_btnMoveUp.insets = new Insets(0, 0, 5, 5);
-//		gbc_btnMoveUp.gridx = 1;
-//		gbc_btnMoveUp.gridy = 8;
-//		controlPanel.add(btnMoveUp, gbc_btnMoveUp);
-//		
-//		//Move Down button
-//		JButton btnMoveDown = new JButton("Move Down");
-//		btnMoveDown.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent arg0) {
-//			}
-//		});
-//		GridBagConstraints gbc_btnMoveDown = new GridBagConstraints();
-//		gbc_btnMoveDown.insets = new Insets(0, 0, 5, 5);
-//		gbc_btnMoveDown.gridx = 1;
-//		gbc_btnMoveDown.gridy = 10;
-//		controlPanel.add(btnMoveDown, gbc_btnMoveDown);
-//		
-//		//Move Left button
-//		JButton btnNewButton_2 = new JButton("Move Left");
-//		GridBagConstraints gbc_btnNewButton_2 = new GridBagConstraints();
-//		gbc_btnNewButton_2.insets = new Insets(0, 0, 5, 5);
-//		gbc_btnNewButton_2.gridx = 0;
-//		gbc_btnNewButton_2.gridy = 9;
-//		controlPanel.add(btnNewButton_2, gbc_btnNewButton_2);
-//		
-//		//Move RIght button
-//		JButton btnMoveRight = new JButton("Move Right");
-//		GridBagConstraints gbc_btnMoveRight = new GridBagConstraints();
-//		gbc_btnMoveRight.insets = new Insets(0, 0, 5, 0);
-//		gbc_btnMoveRight.gridx = 2;
-//		gbc_btnMoveRight.gridy = 9;
-//		controlPanel.add(btnMoveRight, gbc_btnMoveRight);
+
         
 		// add pane for the graph to RHS. 
         graphPane = new JPanel();
