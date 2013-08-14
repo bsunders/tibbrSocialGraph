@@ -78,7 +78,7 @@ public class MainFrame  {
 		// just some defaults for testing
 		txtURL = new JTextField("http://172.16.101.129"); 
 		txtUserID = new JTextField("tibbradmin");
-		txtPassword = new JPasswordField("password");
+		txtPassword = new JPasswordField("");
 		
 	}
 	
