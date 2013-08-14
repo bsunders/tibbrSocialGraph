@@ -11,7 +11,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
@@ -29,7 +28,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import org.gephi.preview.api.PreviewProperty;
 import org.gephi.preview.api.ProcessingTarget;
 
 import processing.core.PApplet;
@@ -37,7 +35,6 @@ import processing.core.PApplet;
 import javax.swing.JCheckBox;
 import javax.swing.SwingConstants;
 import javax.swing.JSpinner;
-import javax.swing.JList;
 import javax.swing.JComboBox;
 
 @SuppressWarnings("rawtypes")
@@ -62,7 +59,6 @@ public class MainFrame  {
 	// graph settings components
 	private static JTextField txtUserCentric;
 	private static JCheckBox chckbxEdgeCurved;
-	//private static HashMap<String, Object> prevProps = new HashMap<String, Object>();
 	private static JSpinner repulseSpinner;
 	private static  JCheckBox chckbxCommunities;
 
@@ -80,9 +76,9 @@ public class MainFrame  {
 		tibbr_usr = "";
 		tibbr_pwd = "";
 		// just some defaults for testing
-		txtURL = new JTextField("https://tibbrdemo.tibbr.com"); 
+		txtURL = new JTextField("http://172.16.101.129"); 
 		txtUserID = new JTextField("tibbradmin");
-		txtPassword = new JPasswordField("");
+		txtPassword = new JPasswordField("password");
 		
 	}
 	
@@ -114,6 +110,7 @@ public class MainFrame  {
 			
 	        //Set up the content pane.
 	        addComponentsToPane();
+	        frame.repaint();
 	        //frame.setLocationRelativeTo(null);
 	        frame.pack();
 	        frame.setVisible(true);
@@ -124,7 +121,7 @@ public class MainFrame  {
         
 		// add local panel to WEST zone of frames content pane.
 		GridBagLayout gbl_controlPanel = new GridBagLayout();
-		gbl_controlPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0};
+		//gbl_controlPanel.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0};
 		controlPanel = new JPanel( gbl_controlPanel);
 		contentPane.add(controlPanel, BorderLayout.WEST);
 		
@@ -253,6 +250,7 @@ public class MainFrame  {
 		lowColorComboBox = new JComboBox();
 		 for (int i =0; i < colours.length;i++)
 			 lowColorComboBox.addItem(colours[i]);
+		 lowColorComboBox.setSelectedItem("blue");
 		 
 		GridBagConstraints gbc_lowColorComboBox = new GridBagConstraints();
 		gbc_lowColorComboBox.insets = new Insets(0, 0, 5, 5);
@@ -274,6 +272,7 @@ public class MainFrame  {
 		 
 		 for (int i =0; i < colours.length;i++)
 			 medColorComboBox.addItem(colours[i]);
+		 medColorComboBox.setSelectedItem("orange");
 		 
 		GridBagConstraints gbc_medColorComboBox = new GridBagConstraints();
 		gbc_medColorComboBox.insets = new Insets(0, 0, 5, 5);
@@ -378,14 +377,14 @@ public class MainFrame  {
         
 		// add pane for the graph to RHS. 
         graphPane = new JPanel();
-        graphPane.setPreferredSize(new Dimension(1000, 1000));
+        graphPane.setPreferredSize(new Dimension(1250, 1100));
         graphPane.setBackground(Color.GRAY);
         contentPane.add(graphPane,BorderLayout.CENTER);
         
         // setup text area for the output console
         JTextArea consoleTextArea = new JTextArea("");
         // set desired size of text area (and let layout manager work it out).
-        consoleTextArea.setPreferredSize(new Dimension(400, 500));
+        consoleTextArea.setPreferredSize(new Dimension(490, 500));
         
         float newSize = (float) 10.0;
 		Font biggerFont = consoleTextArea.getFont().deriveFont(newSize );
@@ -393,7 +392,7 @@ public class MainFrame  {
 		consoleTextArea.setFont(biggerFont);
         
         // use our OutputStream helper class to write to the textarea
-        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 35 ); // max lines = 100        
+        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 25 ); // max lines = 100        
         ps = new PrintStream( taos );
 
         // reassign standard output streams to our new print stream

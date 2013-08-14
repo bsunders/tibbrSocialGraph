@@ -1,14 +1,11 @@
 package org.ben.socialgraph;
 
 import java.io.BufferedReader;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-
 import java.net.URLEncoder;
 import java.util.UUID;
 
@@ -36,23 +33,15 @@ import org.xml.sax.SAXException;
  class TibbrUser {	
 	public String login;
 	public String id;
-	private final Integer max_users_followed=100;
-	public String[]  idols= new String[max_users_followed]; // declares and allocates memory (not init)
-
-	public TibbrUser () {
-		this.login = ""; 
-		this.id = "";
-		
-		for (int i = 0; i < idols.length ; i++)
-			  this.idols[i] = "";
-	}
+	private final Integer maxIdols=1000;
+	public String[]  idols = new String[maxIdols]; // assumes a user will follow no more than 1000 others.
 	
 	public TibbrUser (String xlogin, String xid) {
 		this.login = xlogin; 
 		this.id = xid; 
 		
 		for (int i = 0; i < idols.length ; i++)
-			  idols[i] = "";
+			  this.idols[i] = "";
 		
 	}
 }
@@ -60,14 +49,16 @@ import org.xml.sax.SAXException;
  
 public class GetGraphDataFromTibbr {
 
+	public Integer numUsers = 0;
 	private String username;
 	private String password;
 	private String urlBase;
 	private String auth_token=null;
 	private String client_key=null;
-	private final Integer max_users=100;
-	private final Integer max_users_followed=100;
-	public TibbrUser[] myUsers = new TibbrUser[max_users]; 
+	
+	private final Integer max_users=5000;  // just used for max number of results from HTTP request
+	private final Integer max_users_followed=1000; // just used for max number of results from HTTP request
+	public TibbrUser[] myUsers; 
 	
 	// contructor
 	public GetGraphDataFromTibbr (String _urlbase, String _username, String _password){
@@ -75,9 +66,7 @@ public class GetGraphDataFromTibbr {
 			this.username=_username;
 			this.password=_password;
 			client_key=UUID.randomUUID().toString();
-			// properly initialise here:
-			for (int i = 0; i < myUsers.length ; i++)
-				myUsers[i] = new TibbrUser();
+			
 	}
 
 	// logs in as specified user and sets the class member "auth_token" which is needed for all subsequent API calls
@@ -119,7 +108,10 @@ public class GetGraphDataFromTibbr {
 	}
 	
 	// one time pass to get all users into array.
-	public void getAllUsers(){
+	/**
+	 * getAllUsers
+	 */
+	private void getAllUsers(){
 		
 		System.out.println("Retrieving Social Graph Data from tibbr..."); 
 		DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -150,7 +142,11 @@ public class GetGraphDataFromTibbr {
 	}
 
 	// this is run for each user 
-	public void getIDOLS(int index){
+	/**
+	 * getIDOLS
+	 * @param index
+	 */
+	private void getIDOLS(int index){
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		
@@ -185,11 +181,20 @@ public class GetGraphDataFromTibbr {
 
 
 	// Extra user data from XML
-	void getAllUserElements(Document d){
+	/**
+	 * getAllUserElements
+	 * @param d
+	 */
+	private void getAllUserElements(Document d){
 	    NodeList nodes = d.getElementsByTagName("user");
-	    TibbrUser tu1 = new TibbrUser();
 	    
-	    System.out.println("There are this many nodes:" + nodes.getLength());
+	    
+	    // initialise myUsers here since we now know its size.
+	    numUsers = nodes.getLength();
+	    myUsers = new TibbrUser[numUsers];
+	    
+	    
+	    //System.out.println("There are this many nodes:" + nodes.getLength());
 	    for (int i = 0; i < nodes.getLength(); i++) {
 	    	 
 	        Element element = (Element) nodes.item(i);
@@ -197,24 +202,30 @@ public class GetGraphDataFromTibbr {
 	        NodeList login = element.getElementsByTagName("login");
 	        Element line = (Element) login.item(0);
 	        String messageA = "Login name: " + line.getFirstChild().getTextContent();
-	        tu1.login = line.getFirstChild().getTextContent();
+	        String loginID  = line.getFirstChild().getTextContent();
 	        
 	        NodeList id = element.getElementsByTagName("id");
 	        line = (Element) id.item(0);
 	        System.out.println(messageA + " ID: " + line.getFirstChild().getTextContent());
-	        tu1.id = line.getFirstChild().getTextContent();
+	        String myID = line.getFirstChild().getTextContent();
 	        
-	        this.myUsers[i] = new TibbrUser (tu1.login, tu1.id);   
+	        myUsers[i] = new TibbrUser (loginID, myID);   
 	    }
 	    	    
 	}
 	
 	
 	// Need to get the list of IDOLS (users followed by our current user) and store into TibbrUser array.
-	void getIdolElements(int indx, Document d){
+	/**
+	 * getIdolElements
+	 * @param indx
+	 * @param d
+	 */
+	private void getIdolElements(int indx, Document d){
 	    NodeList nodes = d.getElementsByTagName("user");
+	       
 	    
-	    System.out.println("There are this many IDOLs: " + nodes.getLength());
+	    //System.out.println("There are this many IDOLs: " + nodes.getLength());
 	    for (int i = 0; i < nodes.getLength(); i++) {
 	    	 
 	        Element element = (Element) nodes.item(i);
@@ -230,6 +241,12 @@ public class GetGraphDataFromTibbr {
 	    	    
 	}
 	
+	/**
+	 * readStream
+	 * @param is
+	 * @return
+	 * @throws IOException
+	 */
 	public String readStream(InputStream is) throws IOException {
 	    BufferedReader br = new BufferedReader(new InputStreamReader(is));
 	
@@ -242,6 +259,11 @@ public class GetGraphDataFromTibbr {
 	 }
 
 	//parse XML into ??
+	/**
+	 * parseXml
+	 * @param xml
+	 * @return
+	 */
 	public Document parseXml(String xml) {
 		
 	    InputSource is = new InputSource(new StringReader(xml));
@@ -264,7 +286,11 @@ public class GetGraphDataFromTibbr {
 	    return null;
 	}
 
-	public void getTibbrUserData(){
+	/**
+	 * getTibbrUserData
+	 * @throws InterruptedException 
+	 */
+	public void getTibbrUserData() throws InterruptedException{
 		
 		
 		// first get list of all users
@@ -274,13 +300,22 @@ public class GetGraphDataFromTibbr {
 		for (int i=0; i < this.myUsers.length; i++) {
 			if (this.myUsers[i].id != "") {
 				getIDOLS(i);
-			}
+				 if ((i % 10) == 0)
+					 Thread.sleep(1000);    // every 10th user, sleep for 1 second.
+			}		
+					
 		}
-		System.out.println("------- Done getting data from tibbr--------"); 
+		System.out.println("\n------- Done getting SG data from tibbr server--------\n"); 
 
 	}
 
 	// utility Method
+	/**
+	 * firstElementByTag
+	 * @param d
+	 * @param tag
+	 * @return
+	 */
 	public Node firstElementByTag(Document d, String tag) {
 		
 	    NodeList list = d.getElementsByTagName(tag);

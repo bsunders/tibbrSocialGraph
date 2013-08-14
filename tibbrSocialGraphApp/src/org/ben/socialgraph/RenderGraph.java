@@ -6,7 +6,9 @@ package org.ben.socialgraph;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,6 +24,8 @@ import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
+import org.gephi.io.exporter.api.ExportController;
+import org.gephi.io.exporter.preview.PDFExporter;
 import org.gephi.io.importer.api.Container;
 import org.gephi.io.importer.api.EdgeDefault;
 import org.gephi.io.importer.api.ImportController;
@@ -48,6 +52,8 @@ import org.gephi.statistics.plugin.GraphDistance;
 import org.gephi.statistics.plugin.Modularity;
 import org.openide.util.Lookup;
 
+import com.itextpdf.text.PageSize;
+
 import processing.core.PApplet;
 
 
@@ -58,11 +64,10 @@ import processing.core.PApplet;
  */
 public class RenderGraph  {
 
-	private TibbrUser[] users = new TibbrUser[200];
-	private Node[] arrNodes = new Node[200];
-	private Edge[] arrEdges = new Edge[1000];
+	private TibbrUser[] users; // we will initialise this array once we know the no. of users
+					
 	private String filename = "graph.csv";
-	
+	private String exportNamePDF;
 	private String tibbr_url = ""; // default in case not set in UI.
 	private String tibbr_usr = "";
 	private String tibbr_pwd = "";
@@ -145,7 +150,7 @@ public class RenderGraph  {
 		//String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
 		//filename = b[0]+ "_graph_" +date+ ".csv";
 		filename = url_server[0]+ "_graph.csv";
-
+		exportNamePDF = url_server[0]+ "_graph.pdf";
 	}
 	
 	
@@ -159,7 +164,8 @@ public class RenderGraph  {
 
 		// checks if a data file exists, otherwise calls the class to gather raw data from tibbr	
 		getTibbrGraph();
-
+		// now we should have a csv file locally....
+		
 		//Init a project - and therefore a workspace
 		ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
 		pc.newProject();
@@ -341,11 +347,63 @@ public class RenderGraph  {
 		target.resetZoom();
 		//target.zoomMinus();
 		System.out.println("Graph redered...");
+		getPDF();
+		
+		
 		return target;
 		
 
 	}
 
+	
+	public void getPDF(){
+		
+		
+		//Simple PDF export
+		ExportController ec = Lookup.getDefault().lookup(ExportController.class);
+		try {
+		   ec.exportFile(new File(exportNamePDF));
+		} catch (IOException ex) {
+		   ex.printStackTrace();
+		   return;
+		}
+	 
+		//PDF Exporter config and export to Byte array
+		PDFExporter pdfExporter = (PDFExporter) ec.getExporter("pdf");
+		pdfExporter.setPageSize(PageSize.A0);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ec.exportStream(baos, pdfExporter);
+		byte[] pdf = baos.toByteArray();
+//		//return pdf;
+//		
+//		
+//		FileInputStream fileInputStream=null;
+//		 
+//        File file = new File("C:\\te");
+// 
+//        byte[] bFile = new byte[(int) file.length()];
+// 
+//        try {
+//            //convert file into array of bytes
+//		    fileInputStream = new FileInputStream(file);
+//		    fileInputStream.read(bFile);
+//		    fileInputStream.close();
+//	 
+//		    //convert array of bytes into file
+//		    FileOutputStream fileOuputStream = 
+//	                  new FileOutputStream("C:\\testing2.txt"); 
+//		    fileOuputStream.write(bFile);
+//		    fileOuputStream.close();
+//	 
+//		    System.out.println("Done");
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+        
+        
+		
+	}
+	
 	/**
 	 * CreateUserCentricCSV
 	 * @return
@@ -406,6 +464,9 @@ public class RenderGraph  {
 			try {
 				tibbr.loginUser();	
 				tibbr.getTibbrUserData();  // just stores each user and who they follow in an array
+				
+				// now we can size the array
+				users = new TibbrUser[tibbr.numUsers];
 				this.users = tibbr.myUsers;
 
 				dumpUsersToFile();  // write all user data from array to csv, ready for Gephi toolkit.
@@ -465,10 +526,10 @@ public class RenderGraph  {
 
 	}	
 
-	/**
-	 * getGraphFromArray
-	 * @param graphModel
-	 */
+	
+	/* 
+	 * 
+	
 	public void getGraphFromArray(GraphModel graphModel){
 
 
@@ -512,11 +573,7 @@ public class RenderGraph  {
 		}
 
 	}
-	/**
-	 * getNodeFromLogin
-	 * @param login
-	 * @return
-	 */
+
 	public Node getNodeFromLogin(String login){
 
 		Node retval = null;
@@ -537,7 +594,7 @@ public class RenderGraph  {
 	}
 
 
-
+*/
 
 
 
