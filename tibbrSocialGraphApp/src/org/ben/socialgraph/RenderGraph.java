@@ -4,6 +4,7 @@ package org.ben.socialgraph;
 
 
 import java.awt.Color;
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -356,7 +357,21 @@ public class RenderGraph  {
 	}
 
 	
-	public void getPDF(){
+	public void openPDF(){
+		
+		if (Desktop.isDesktopSupported()) {
+		    try {
+		        File myFile = new File(exportNamePDF);
+		        Desktop.getDesktop().open(myFile);
+		    } catch (IOException ex) {
+		        // no application registered for PDFs
+		    }
+		}
+		
+	}
+	
+	
+	private void getPDF(){
 		
 		
 		//Simple PDF export
@@ -373,34 +388,8 @@ public class RenderGraph  {
 		pdfExporter.setPageSize(PageSize.A0);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ec.exportStream(baos, pdfExporter);
-		byte[] pdf = baos.toByteArray();
-//		//return pdf;
-//		
-//		
-//		FileInputStream fileInputStream=null;
-//		 
-//        File file = new File("C:\\te");
-// 
-//        byte[] bFile = new byte[(int) file.length()];
-// 
-//        try {
-//            //convert file into array of bytes
-//		    fileInputStream = new FileInputStream(file);
-//		    fileInputStream.read(bFile);
-//		    fileInputStream.close();
-//	 
-//		    //convert array of bytes into file
-//		    FileOutputStream fileOuputStream = 
-//	                  new FileOutputStream("C:\\testing2.txt"); 
-//		    fileOuputStream.write(bFile);
-//		    fileOuputStream.close();
-//	 
-//		    System.out.println("Done");
-//        }catch(Exception e){
-//            e.printStackTrace();
-//        }
-        
-        
+		//byte[] pdf = baos.toByteArray();
+
 		
 	}
 	

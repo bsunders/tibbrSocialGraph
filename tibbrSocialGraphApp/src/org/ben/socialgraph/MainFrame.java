@@ -11,6 +11,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintStream;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
@@ -76,9 +77,9 @@ public class MainFrame  {
 		tibbr_usr = "";
 		tibbr_pwd = "";
 		// just some defaults for testing
-		txtURL = new JTextField("http://172.16.101.129"); 
+		txtURL = new JTextField("http://inditex.tibbr.com"); 
 		txtUserID = new JTextField("tibbradmin");
-		txtPassword = new JPasswordField("");
+		txtPassword = new JPasswordField("ppp");
 		
 	}
 	
@@ -219,6 +220,7 @@ public class MainFrame  {
 		gbc_chckbxEdgeCurved.insets = new Insets(0, 0, 5, 5);
 		gbc_chckbxEdgeCurved.gridx = 1;
 		gbc_chckbxEdgeCurved.gridy = 6;
+		chckbxEdgeCurved.setSelected(true);
 		controlPanel.add(chckbxEdgeCurved, gbc_chckbxEdgeCurved);
 		
 		// Communities
@@ -229,6 +231,7 @@ public class MainFrame  {
 		gbc_chckbxHighlightCommunities.insets = new Insets(0, 0, 5, 5);
 		gbc_chckbxHighlightCommunities.gridx = 1;
 		gbc_chckbxHighlightCommunities.gridy = 7;
+		chckbxCommunities.setSelected(true);
 		controlPanel.add(chckbxCommunities, gbc_chckbxHighlightCommunities);
 		
 		JLabel lblColourNodesBy = new JLabel("Colour nodes by most connected");
@@ -311,7 +314,7 @@ public class MainFrame  {
 		gbc_lblNodeRepulsion.gridy = 12;
 		controlPanel.add(lblNodeRepulsion, gbc_lblNodeRepulsion);
 		
-		SpinnerModel model = new SpinnerNumberModel(5000,500,90000,500);
+		SpinnerModel model = new SpinnerNumberModel(3000,500,90000,500);
 		 repulseSpinner = new JSpinner(model);
 
 		GridBagConstraints gbc_spinner = new GridBagConstraints();
@@ -322,7 +325,7 @@ public class MainFrame  {
 		controlPanel.add(repulseSpinner, gbc_spinner);
 		
 		//get graph
-		JButton btnGetGraph = new JButton("Get Graph..");
+		JButton btnGetGraph = new JButton("Display Graph..");
 		GridBagConstraints gbc_btnGetGraph = new GridBagConstraints();
 		gbc_btnGetGraph.insets = new Insets(0, 0, 5, 5);
 		gbc_btnGetGraph.gridx = 2;
@@ -339,10 +342,22 @@ public class MainFrame  {
 				target.zoomPlus();
 			}
 		});
+		
+		JButton btnOpenPdf = new JButton("Open PDF...");
+		btnOpenPdf.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				tsb.openPDF();
+			}
+		});
+		GridBagConstraints gbc_btnOpenPdf = new GridBagConstraints();
+		gbc_btnOpenPdf.insets = new Insets(0, 0, 5, 5);
+		gbc_btnOpenPdf.gridx = 2;
+		gbc_btnOpenPdf.gridy = 14;
+		controlPanel.add(btnOpenPdf, gbc_btnOpenPdf);
 		GridBagConstraints gbc_btnZoomIn = new GridBagConstraints();
 		gbc_btnZoomIn.insets = new Insets(0, 0, 5, 5);
 		gbc_btnZoomIn.gridx = 1;
-		gbc_btnZoomIn.gridy = 14;
+		gbc_btnZoomIn.gridy = 15;
 		controlPanel.add(btnZoomIn, gbc_btnZoomIn);
 				
 		//Zoom out button
@@ -355,7 +370,7 @@ public class MainFrame  {
 		GridBagConstraints gbc_btnNewButton_1 = new GridBagConstraints();
 		gbc_btnNewButton_1.insets = new Insets(0, 0, 5, 5);
 		gbc_btnNewButton_1.gridx = 1;
-		gbc_btnNewButton_1.gridy = 15;
+		gbc_btnNewButton_1.gridy = 16;
 		controlPanel.add(btnNewButton_1, gbc_btnNewButton_1);
 		
 		//Zoom Reset button
@@ -370,21 +385,21 @@ public class MainFrame  {
 		GridBagConstraints gbc_btnResetZoom = new GridBagConstraints();
 		gbc_btnResetZoom.insets = new Insets(0, 0, 5, 5);
 		gbc_btnResetZoom.gridx = 1;
-		gbc_btnResetZoom.gridy = 16;
+		gbc_btnResetZoom.gridy = 17;
 		controlPanel.add(btnResetZoom, gbc_btnResetZoom);
 		
 
         
 		// add pane for the graph to RHS. 
         graphPane = new JPanel();
-        graphPane.setPreferredSize(new Dimension(1250, 1100));
+        graphPane.setPreferredSize(new Dimension(1000, 1100));
         graphPane.setBackground(Color.GRAY);
         contentPane.add(graphPane,BorderLayout.CENTER);
         
         // setup text area for the output console
         JTextArea consoleTextArea = new JTextArea("");
         // set desired size of text area (and let layout manager work it out).
-        consoleTextArea.setPreferredSize(new Dimension(490, 500));
+        //consoleTextArea.setPreferredSize(new Dimension(490, 500));
         
         float newSize = (float) 10.0;
 		Font biggerFont = consoleTextArea.getFont().deriveFont(newSize );
@@ -392,7 +407,7 @@ public class MainFrame  {
 		consoleTextArea.setFont(biggerFont);
         
         // use our OutputStream helper class to write to the textarea
-        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 25 ); // max lines = 100        
+        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 35 ); // max lines = 100        
         ps = new PrintStream( taos );
 
         // reassign standard output streams to our new print stream
@@ -403,13 +418,14 @@ public class MainFrame  {
 		//gbc_scrollBar.gridheight = 2;
 		gbc_scrollBar.gridwidth = 4;
 		gbc_scrollBar.gridx = 0;
-		gbc_scrollBar.gridy = 22;
+		gbc_scrollBar.gridy = 23;
 		
 		// add the console to a scroll window
 		JScrollPane sp = new JScrollPane(consoleTextArea,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
+		sp.setPreferredSize(new Dimension(490, 500));
+		
 		// add the scroller (containing the console) to the control panel grid
 		controlPanel.add(sp , gbc_scrollBar);
 
@@ -474,6 +490,18 @@ public class MainFrame  {
 				return target1;
                 
             }
+
+            
+            
+//			@Override
+//			protected void process(List<Integer> chunks) {
+//				
+//				for (Integer chunk : chunks) 
+//		            progressBar.setValue(chunk);
+//		            
+//			}
+
+
 
 			@Override
 			protected void done() {
