@@ -10,18 +10,21 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.PrintStream;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
@@ -67,19 +70,26 @@ public class MainFrame  {
 	private static JComboBox medColorComboBox;
 	private static JComboBox highColorComboBox;
 	
+	private static JLabel statusLabel;
+	  
 	private static String[] colours = {"red","orange","yellow","green","blue","white","gray","pink", "cyan"};
 	 
-	 
-	 
+	private static boolean fCluster;
+	private static boolean fConnected;
+	
 	public MainFrame(){
 		
 		tibbr_url = "";
 		tibbr_usr = "";
 		tibbr_pwd = "";
 		// just some defaults for testing
-		txtURL = new JTextField("http://inditex.tibbr.com"); 
-		txtUserID = new JTextField("tibbradmin");
-		txtPassword = new JPasswordField("ppp");
+		txtURL = new JTextField("https://jivedemo-ben-demo.jiveon.com"); 
+		txtURL.setToolTipText("Enter the Jive URL e.g. https://jivedemo-myserver.jiveon.com ");
+		txtUserID = new JTextField("adminuser");
+		txtUserID.setToolTipText("Enter Jive login username" );
+		txtPassword = new JPasswordField("jive123");
+		txtPassword.setToolTipText("Enter Jive login password" );
+		
 		
 	}
 	
@@ -96,13 +106,13 @@ public class MainFrame  {
 	
 	 private static void createAndShowGUI() {
          
-		 	// call constructor to setup tibbr creds.
+		 	// call constructor to setup jive creds.
 		 	mf = new MainFrame();
 		 	
-	        frame = new JFrame("tibbr Social Graph");
+	        frame = new JFrame("Jive Social Graph");
 	        //frame.setSize(new Dimension(500, 500));
 	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setTitle("Social Graph v1.0");
+			frame.setTitle("Jive Social Graph Analyzer v1.0");
 
 			contentPane = (JPanel) frame.getContentPane();
 			contentPane.setBackground(Color.WHITE);
@@ -126,8 +136,16 @@ public class MainFrame  {
 		controlPanel = new JPanel( gbl_controlPanel);
 		contentPane.add(controlPanel, BorderLayout.WEST);
 		
-		//tibbr URL input
-		JLabel lblTibbrUrl = new JLabel("tibbr URL:");
+        
+		// add pane for the graph to RHS. 
+        graphPane = new JPanel();
+        graphPane.setPreferredSize(new Dimension(1000, 1100));
+        graphPane.setBackground(Color.GRAY);
+        contentPane.add(graphPane,BorderLayout.CENTER);
+		        
+		        
+		//jive URL input
+		JLabel lblTibbrUrl = new JLabel("Jive URL:");
 		
 		GridBagConstraints gbc_lblTibbrUrl = new GridBagConstraints();
 		gbc_lblTibbrUrl.anchor = GridBagConstraints.EAST;
@@ -148,7 +166,7 @@ public class MainFrame  {
 		
 		
 		//User ID
-		JLabel lblTibbrUserid = new JLabel("tibbr UserID:");
+		JLabel lblTibbrUserid = new JLabel("Jive Username:");
 		GridBagConstraints gbc_lblTibbrUserid = new GridBagConstraints();
 		gbc_lblTibbrUserid.anchor = GridBagConstraints.EAST;
 		gbc_lblTibbrUserid.insets = new Insets(0, 0, 5, 5);
@@ -167,7 +185,7 @@ public class MainFrame  {
 		txtUserID.setColumns(10);
 		
 		//password input
-		JLabel lblTibbrPassword = new JLabel("tibbr Password:");
+		JLabel lblTibbrPassword = new JLabel("Jive Password:");
 		GridBagConstraints gbc_lblTibbrPassword = new GridBagConstraints();
 		gbc_lblTibbrPassword.anchor = GridBagConstraints.EAST;
 		gbc_lblTibbrPassword.insets = new Insets(0, 0, 5, 5);
@@ -184,8 +202,8 @@ public class MainFrame  {
 		controlPanel.add(txtPassword, gbc_txtPassword);
 		txtPassword.setColumns(10);
 		
-		// user centric 
-		JLabel lblNewLabel = new JLabel("User-Centric Graph:");
+	// user centric 
+		JLabel lblNewLabel = new JLabel("User-Centric (enter username):");
 		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
 		gbc_lblNewLabel.anchor = GridBagConstraints.EAST;
 		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
@@ -202,15 +220,24 @@ public class MainFrame  {
 		gbc_textField.gridy = 3;
 		controlPanel.add(txtUserCentric, gbc_textField);
 		txtUserCentric.setColumns(10);
-		 
-		//Graph Settings label
-		 JLabel lblGraphSettings = new JLabel("Graph Settings:");
-		 GridBagConstraints gbc_lblGraphSettings = new GridBagConstraints();
-		 gbc_lblGraphSettings.anchor = GridBagConstraints.EAST;
-		 gbc_lblGraphSettings.insets = new Insets(0, 0, 5, 5);
-		 gbc_lblGraphSettings.gridx = 0;
-		 gbc_lblGraphSettings.gridy = 6;
-		 controlPanel.add(lblGraphSettings, gbc_lblGraphSettings);
+		
+	//Graph Options 
+		 JLabel lblGraphOptions = new JLabel("Graph Options:");
+		 GridBagConstraints gbc_lblGraphOptions = new GridBagConstraints();
+		 gbc_lblGraphOptions.anchor = GridBagConstraints.EAST;
+		 gbc_lblGraphOptions.insets = new Insets(0, 0, 5, 5);
+		 gbc_lblGraphOptions.gridx = 0;
+		 gbc_lblGraphOptions.gridy = 5;
+		 controlPanel.add(lblGraphOptions, gbc_lblGraphOptions);	
+		
+//  //Graph Settings label
+//		 JLabel lblGraphSettings = new JLabel("Graph Settings:");
+//		 GridBagConstraints gbc_lblGraphSettings = new GridBagConstraints();
+//		 gbc_lblGraphSettings.anchor = GridBagConstraints.EAST;
+//		 gbc_lblGraphSettings.insets = new Insets(0, 0, 5, 5);
+//		 gbc_lblGraphSettings.gridx = 0;
+//		 gbc_lblGraphSettings.gridy = 5;
+//		 controlPanel.add(lblGraphSettings, gbc_lblGraphSettings);
 		
 		 // Edge curved
 		 chckbxEdgeCurved = new JCheckBox("Edge Curved");
@@ -219,22 +246,98 @@ public class MainFrame  {
 		gbc_chckbxEdgeCurved.anchor = GridBagConstraints.WEST;
 		gbc_chckbxEdgeCurved.insets = new Insets(0, 0, 5, 5);
 		gbc_chckbxEdgeCurved.gridx = 1;
-		gbc_chckbxEdgeCurved.gridy = 6;
+		gbc_chckbxEdgeCurved.gridy = 5;
 		chckbxEdgeCurved.setSelected(true);
 		controlPanel.add(chckbxEdgeCurved, gbc_chckbxEdgeCurved);
+		 
+		// Node repulsion
+		JLabel lblNodeRepulsion = new JLabel("Node Repulsion:");
+		GridBagConstraints gbc_lblNodeRepulsion = new GridBagConstraints();
+		gbc_lblNodeRepulsion.anchor = GridBagConstraints.EAST;
+		gbc_lblNodeRepulsion.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNodeRepulsion.gridx = 1;
+		gbc_lblNodeRepulsion.gridy = 6;
+		controlPanel.add(lblNodeRepulsion, gbc_lblNodeRepulsion);
+		
+		SpinnerModel model = new SpinnerNumberModel(3000,500,90000,500);
+		 repulseSpinner = new JSpinner(model);
+
+		GridBagConstraints gbc_spinner = new GridBagConstraints();
+		gbc_spinner.anchor = GridBagConstraints.WEST;
+		gbc_spinner.insets = new Insets(0, 0, 5, 5);
+		gbc_spinner.gridx = 2;
+		gbc_spinner.gridy = 6;
+		controlPanel.add(repulseSpinner, gbc_spinner);
+		
+		 // Graph Radios
+		
+		JLabel lblAnalysis = new JLabel("Graph Analysis Type:");
+		GridBagConstraints gbc_lblAnalysis = new GridBagConstraints();
+		gbc_lblAnalysis.anchor = GridBagConstraints.EAST;
+		gbc_lblAnalysis.insets = new Insets(0, 0, 5, 5);
+		gbc_lblAnalysis.gridx = 0;
+		gbc_lblAnalysis.gridy = 7;
+		controlPanel.add(lblAnalysis, gbc_lblAnalysis);
+		
+		
+	      final JRadioButton radConnected = new JRadioButton("Connectedness", true);
+	      final JRadioButton radCluster = new JRadioButton("Cluster");
+	      radConnected.setMnemonic(KeyEvent.VK_C);
+	      radCluster.setMnemonic(KeyEvent.VK_M);
+	      
+	      radConnected.addItemListener(new ItemListener() {
+	         public void itemStateChanged(ItemEvent e) {   
+	        	 fConnected = (e.getStateChange()==1?true:false);
+	        	 fCluster = !fConnected;
+	        	 lowColorComboBox.setEnabled(fConnected);
+	        	 medColorComboBox.setEnabled(fConnected);
+	        	 highColorComboBox.setEnabled(fConnected);
+	         }
+	         });
+
+	      radCluster.addItemListener(new ItemListener() {
+		         public void itemStateChanged(ItemEvent e) {   
+		        	 fCluster = (e.getStateChange()==1?true:false);
+		        	 fConnected = !fCluster;
+		        	 lowColorComboBox.setEnabled(fConnected);
+		        	 medColorComboBox.setEnabled(fConnected);
+		        	 highColorComboBox.setEnabled(fConnected);
+		         }
+		         });	      
+
+	      //Group the radio buttons.
+	      ButtonGroup group = new ButtonGroup();
+	      group.add(radConnected);
+	      group.add(radCluster);
+	
+	      GridBagConstraints gbc_radConnected = new GridBagConstraints();
+	      gbc_radConnected.anchor = GridBagConstraints.EAST;
+	      gbc_radConnected.insets = new Insets(0, 0, 5, 5);
+	      gbc_radConnected.gridx = 1;
+	      gbc_radConnected.gridy = 7;
+			 controlPanel.add(radConnected, gbc_radConnected);	
+			 
+		 GridBagConstraints gbc_radCluster = new GridBagConstraints();
+		 gbc_radCluster.anchor = GridBagConstraints.EAST;
+		 gbc_radCluster.insets = new Insets(0, 0, 5, 5);
+		 gbc_radCluster.gridx = 2;
+		 gbc_radCluster.gridy = 7;
+			 controlPanel.add(radCluster, gbc_radCluster);
+
+
 		
 		// Communities
-		 chckbxCommunities = new JCheckBox("Highlight Communities");
-		chckbxCommunities.setHorizontalAlignment(SwingConstants.LEFT);
-		GridBagConstraints gbc_chckbxHighlightCommunities = new GridBagConstraints();
-		gbc_chckbxHighlightCommunities.anchor = GridBagConstraints.WEST;
-		gbc_chckbxHighlightCommunities.insets = new Insets(0, 0, 5, 5);
-		gbc_chckbxHighlightCommunities.gridx = 1;
-		gbc_chckbxHighlightCommunities.gridy = 7;
-		chckbxCommunities.setSelected(true);
-		controlPanel.add(chckbxCommunities, gbc_chckbxHighlightCommunities);
+//		 chckbxCommunities = new JCheckBox("Highlight Communities");
+//		chckbxCommunities.setHorizontalAlignment(SwingConstants.LEFT);
+//		GridBagConstraints gbc_chckbxHighlightCommunities = new GridBagConstraints();
+//		gbc_chckbxHighlightCommunities.anchor = GridBagConstraints.WEST;
+//		gbc_chckbxHighlightCommunities.insets = new Insets(0, 0, 5, 5);
+//		gbc_chckbxHighlightCommunities.gridx = 1;
+//		gbc_chckbxHighlightCommunities.gridy = 7;
+//		chckbxCommunities.setSelected(true);
+//		controlPanel.add(chckbxCommunities, gbc_chckbxHighlightCommunities);
 		
-		JLabel lblColourNodesBy = new JLabel("Colour nodes by most connected");
+		JLabel lblColourNodesBy = new JLabel("Colour nodes by no. of connections");
 		GridBagConstraints gbc_lblColourNodesBy = new GridBagConstraints();
 		gbc_lblColourNodesBy.gridheight = 3;
 		gbc_lblColourNodesBy.insets = new Insets(0, 0, 5, 5);
@@ -305,45 +408,24 @@ public class MainFrame  {
 		gbc_highColorComboBox.gridy = 10;
 		controlPanel.add(highColorComboBox, gbc_highColorComboBox);
 		
-		// Node repulsion
-		JLabel lblNodeRepulsion = new JLabel("Node Repulsion:");
-		GridBagConstraints gbc_lblNodeRepulsion = new GridBagConstraints();
-		gbc_lblNodeRepulsion.anchor = GridBagConstraints.EAST;
-		gbc_lblNodeRepulsion.insets = new Insets(0, 0, 5, 5);
-		gbc_lblNodeRepulsion.gridx = 0;
-		gbc_lblNodeRepulsion.gridy = 12;
-		controlPanel.add(lblNodeRepulsion, gbc_lblNodeRepulsion);
 		
-		SpinnerModel model = new SpinnerNumberModel(3000,500,90000,500);
-		 repulseSpinner = new JSpinner(model);
-
-		GridBagConstraints gbc_spinner = new GridBagConstraints();
-		gbc_spinner.anchor = GridBagConstraints.WEST;
-		gbc_spinner.insets = new Insets(0, 0, 5, 5);
-		gbc_spinner.gridx = 1;
-		gbc_spinner.gridy = 12;
-		controlPanel.add(repulseSpinner, gbc_spinner);
+		
+		
 		
 		//get graph
-		JButton btnGetGraph = new JButton("Display Graph..");
+		JButton btnGetGraph = new JButton("Build Social Graph..");
 		GridBagConstraints gbc_btnGetGraph = new GridBagConstraints();
+		gbc_btnGetGraph.gridheight = 2;
 		gbc_btnGetGraph.insets = new Insets(0, 0, 5, 5);
-		gbc_btnGetGraph.gridx = 2;
-		gbc_btnGetGraph.gridy = 13;
+		gbc_btnGetGraph.gridx = 1;
+		gbc_btnGetGraph.gridy = 11;
 		controlPanel.add(btnGetGraph, gbc_btnGetGraph);
 		btnGetGraph.addActionListener(mf.new HandlerClass());
 	
 		//---------------------------------------------------
 		
-		//Zoom in button
-		JButton btnZoomIn = new JButton("Zoom In");
-		btnZoomIn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				target.zoomPlus();
-			}
-		});
-		
-		JButton btnOpenPdf = new JButton("Open PDF...");
+		// Open as PDF
+		JButton btnOpenPdf = new JButton("Open as PDF...");
 		btnOpenPdf.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				tsb.openPDF();
@@ -354,6 +436,15 @@ public class MainFrame  {
 		gbc_btnOpenPdf.gridx = 2;
 		gbc_btnOpenPdf.gridy = 14;
 		controlPanel.add(btnOpenPdf, gbc_btnOpenPdf);
+		
+		//Zoom in button
+		JButton btnZoomIn = new JButton("Zoom In");
+		btnZoomIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				target.zoomPlus();
+			}
+		});
+
 		GridBagConstraints gbc_btnZoomIn = new GridBagConstraints();
 		gbc_btnZoomIn.insets = new Insets(0, 0, 5, 5);
 		gbc_btnZoomIn.gridx = 1;
@@ -361,17 +452,17 @@ public class MainFrame  {
 		controlPanel.add(btnZoomIn, gbc_btnZoomIn);
 				
 		//Zoom out button
-		JButton btnNewButton_1 = new JButton("Zoom Out");
-		btnNewButton_1.addActionListener(new ActionListener() {
+		JButton btnZoomOut = new JButton("Zoom Out");
+		btnZoomOut.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				target.zoomMinus();
 			}
 		});
-		GridBagConstraints gbc_btnNewButton_1 = new GridBagConstraints();
-		gbc_btnNewButton_1.insets = new Insets(0, 0, 5, 5);
-		gbc_btnNewButton_1.gridx = 1;
-		gbc_btnNewButton_1.gridy = 16;
-		controlPanel.add(btnNewButton_1, gbc_btnNewButton_1);
+		GridBagConstraints gbc_btnZoomOut = new GridBagConstraints();
+		gbc_btnZoomOut.insets = new Insets(0, 0, 5, 5);
+		gbc_btnZoomOut.gridx = 1;
+		gbc_btnZoomOut.gridy = 16;
+		controlPanel.add(btnZoomOut, gbc_btnZoomOut);
 		
 		//Zoom Reset button
 		JButton btnResetZoom = new JButton("Reset Zoom");
@@ -387,27 +478,25 @@ public class MainFrame  {
 		gbc_btnResetZoom.gridx = 1;
 		gbc_btnResetZoom.gridy = 17;
 		controlPanel.add(btnResetZoom, gbc_btnResetZoom);
+	
 		
 
         
-		// add pane for the graph to RHS. 
-        graphPane = new JPanel();
-        graphPane.setPreferredSize(new Dimension(1000, 1100));
-        graphPane.setBackground(Color.GRAY);
-        contentPane.add(graphPane,BorderLayout.CENTER);
+
+        
+ //--–------ output console ----------       
         
         // setup text area for the output console
         JTextArea consoleTextArea = new JTextArea("");
-        // set desired size of text area (and let layout manager work it out).
-        //consoleTextArea.setPreferredSize(new Dimension(490, 500));
+        consoleTextArea.setVisible(true);
         
+        //set font size
         float newSize = (float) 10.0;
 		Font biggerFont = consoleTextArea.getFont().deriveFont(newSize );
-        
 		consoleTextArea.setFont(biggerFont);
         
         // use our OutputStream helper class to write to the textarea
-        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea, 35 ); // max lines = 100        
+        TextAreaOutputStream taos = new TextAreaOutputStream( consoleTextArea,   20 ); // max lines = 100        
         ps = new PrintStream( taos );
 
         // reassign standard output streams to our new print stream
@@ -415,17 +504,19 @@ public class MainFrame  {
         //System.setErr( ps );
 
 		GridBagConstraints gbc_scrollBar = new GridBagConstraints();
-		//gbc_scrollBar.gridheight = 2;
-		gbc_scrollBar.gridwidth = 4;
+		gbc_scrollBar.weightx = 1;
+		gbc_scrollBar.weighty = 1;
+		gbc_scrollBar.fill = GridBagConstraints.BOTH;
+		gbc_scrollBar.gridheight = 1;
+		gbc_scrollBar.gridwidth = 3;
 		gbc_scrollBar.gridx = 0;
 		gbc_scrollBar.gridy = 23;
 		
-		// add the console to a scroll window
-		JScrollPane sp = new JScrollPane(consoleTextArea,
-						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		sp.setPreferredSize(new Dimension(490, 500));
-		
+		// add the textarea to a scroll window
+		JScrollPane sp = new JScrollPane (consoleTextArea);
+		sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		          
 		// add the scroller (containing the console) to the control panel grid
 		controlPanel.add(sp , gbc_scrollBar);
 
@@ -446,15 +537,21 @@ public class MainFrame  {
 	        	
 
 	        	 if ((tibbr_url == "") || (tibbr_usr == "")	|| (tibbr_pwd == "")){
-	        		 JOptionPane.showMessageDialog(null, "tibbr credentials are required...");
+	        		 JOptionPane.showMessageDialog(null, "Jive credentials are required...");
 	        		 return;
 	        	 }
 	        	 
+	        	 // get rid of any slash at end
+	        	 if (tibbr_url.endsWith("/"))
+	        	 {
+	        		 tibbr_url =tibbr_url.substring(0, tibbr_url.length() -1 );
+	        	 }
  
 				tsb = new RenderGraph(tibbr_url, tibbr_usr, tibbr_pwd); // create graph object (lightweight call)
 				 
 				// Fill hashMap attribute based on UI
 				getGraphSettings();
+				
 				// use worker thread to build and display graph
 				displayGraph();
  
@@ -464,10 +561,13 @@ public class MainFrame  {
 
 	 // get graph related settings and store in graphSettings Class
 	 private void getGraphSettings(){
-		 
+		     
 		 tsb.setEdgeCurved(chckbxEdgeCurved.isSelected());
 		 tsb.setUserCentric(txtUserCentric.getText());
-		 tsb.setEnableCommunities(chckbxCommunities.isSelected());
+		 
+		
+		 tsb.setEnableCommunities(fCluster);
+		 
 		 tsb.setNodeRepulsion((Integer)repulseSpinner.getValue());
 		 tsb.setLowColor((String)lowColorComboBox.getSelectedItem());
 		 tsb.setMedColor((String)medColorComboBox.getSelectedItem());
@@ -531,5 +631,7 @@ public class MainFrame  {
         worker.execute();
     }
 	
+	//----------------------- 
 	
+
 }

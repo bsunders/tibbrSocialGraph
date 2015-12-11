@@ -9,22 +9,18 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
-
 import org.gephi.data.attributes.api.AttributeColumn;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.graph.api.DirectedGraph;
-import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
-import org.gephi.graph.api.Node;
 import org.gephi.io.exporter.api.ExportController;
 import org.gephi.io.exporter.preview.PDFExporter;
 import org.gephi.io.importer.api.Container;
@@ -52,9 +48,7 @@ import org.gephi.ranking.plugin.transformer.AbstractSizeTransformer;
 import org.gephi.statistics.plugin.GraphDistance;
 import org.gephi.statistics.plugin.Modularity;
 import org.openide.util.Lookup;
-
 import com.itextpdf.text.PageSize;
-
 import processing.core.PApplet;
 
 
@@ -139,18 +133,18 @@ public class RenderGraph  {
 		//userCentric = usrCentric;
 		//prevProps = new HashMap<String, Object>();   // copy map from parameter into member
 		
-		System.out.println("Getting graph data for tibbr server: " + url);
+		System.out.println("Getting graph data for Jive server: " + url);
 		
 		if (userCentric != "" ){
 			System.out.println("User-centric graph for user: " + userCentric);
 		}
 		
 		String[] a = this.tibbr_url.split("//");
-		String[] url_server = a[1].split(".t"); // assumes the URL is *.tibbr.*
+		String[] url_server = a[1].split("\\."); // take the hostname - note dot needs special handling/
 
 		//String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
 		//filename = b[0]+ "_graph_" +date+ ".csv";
-		filename = url_server[0]+ "_graph.csv";
+			filename = url_server[0]+ "_graph.csv";
 		exportNamePDF = url_server[0]+ "_graph.pdf";
 	}
 	
@@ -178,7 +172,7 @@ public class RenderGraph  {
 		ImportController importController = Lookup.getDefault().lookup(ImportController.class);
 
 		//Import file 
-		System.out.println("Loading raw tibbr data into graph");
+		System.out.println("Loading raw jive data into graph model");
 		Container container;
 		try {
 			// if the user centric user exists, lets create a new CSV, with just that users relations.
@@ -451,7 +445,7 @@ public class RenderGraph  {
 			System.out.println("No cached graph data for this server - contacting tibbr server...");
 			GetGraphDataFromTibbr tibbr = new GetGraphDataFromTibbr(this.tibbr_url, this.tibbr_usr, this.tibbr_pwd);
 			try {
-				tibbr.loginUser();	
+				//tibbr.loginUser(); 
 				tibbr.getTibbrUserData();  // just stores each user and who they follow in an array
 				
 				// now we can size the array
@@ -516,74 +510,7 @@ public class RenderGraph  {
 	}	
 
 	
-	/* 
-	 * 
 	
-	public void getGraphFromArray(GraphModel graphModel){
-
-
-
-		//Create All Nodes first
-		for (int i=0; i<this.users.length; i++) {
-			if (users[i].login != "") {
-				arrNodes[i] = graphModel.factory().newNode(users[i].login);
-				arrNodes[i].getNodeData().setLabel(users[i].login);
-			}	
-		}
-
-		int eIdx = 0;
-		// Create All Edges
-		for (int i=0; i<this.users.length; i++) {
-			Node currUser = arrNodes[i];
-			//loop through each idol
-			for (int j=0; j < this.users[i].idols.length; j++) {	
-				if (this.users[i].idols[j] != "") {
-					Node idol = getNodeFromLogin(this.users[i].idols[j]);
-					if (idol != null){
-						arrEdges[eIdx] = graphModel.factory().newEdge( currUser, idol, 2f, true);
-						eIdx++;
-					}
-				}
-			}
-		}
-
-		//Append as a Directed Graph
-		DirectedGraph directedGraph = graphModel.getDirectedGraph();
-		for (int i=0; i < arrNodes.length;i++) {
-			if (users[i].login == ""){
-				break;
-			}
-			if (users[i].login != ""){
-				directedGraph.addNode(arrNodes[i]);
-			}
-		}
-		for (int i=0; i < eIdx;i++) {
-			directedGraph.addEdge(arrEdges[i]);
-		}
-
-	}
-
-	public Node getNodeFromLogin(String login){
-
-		Node retval = null;
-
-		for (int i = 0; i < users.length; i++){
-			if (users[i].login == ""){
-				break;
-			}	  
-
-
-			if (users[i].login.equals(login)){
-				retval = arrNodes[i];
-				break;
-			}	  
-		}
-		return retval;
-
-	}
-
-
-*/
 
 
 
